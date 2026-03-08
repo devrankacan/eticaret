@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { formatPrice } from '@/lib/utils'
 import { ProductActions } from './ProductActions'
+import { ProductCard } from '@/components/product/ProductCard'
 
 interface Props {
   params: { slug: string }
