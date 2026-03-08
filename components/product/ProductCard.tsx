@@ -121,31 +121,25 @@ export function ProductCard({ product, className = '' }: Props) {
           </p>
         </Link>
 
-        <div className="mt-2 flex items-end justify-between gap-1">
-          <div>
-            <p className="price font-bold text-sm">
-              {formatPrice(product.price)}
-            </p>
-            {product.comparePrice && (
-              <p className="text-gray-400 text-xs line-through">
-                {formatPrice(product.comparePrice)}
-              </p>
-            )}
-          </div>
-          {isOutOfStock && <span className="text-red-500 text-xs font-medium">Tükendi</span>}
-          {isLowStock && <span className="text-amber-600 text-xs font-medium">Son {product.stock}</span>}
+        <div className="mt-2">
+          <p className="price font-bold text-sm">
+            {formatPrice(product.price)}
+          </p>
+          <p className="text-gray-400 text-xs line-through min-h-[1.125rem]">
+            {product.comparePrice ? formatPrice(product.comparePrice) : ''}
+          </p>
         </div>
 
-        {/* Mobil - her zaman görünür buton */}
+        {/* Sepete Ekle butonu - her zaman aynı yerde */}
         {isOutOfStock ? (
-          <div className="mt-2 w-full bg-gray-100 text-gray-500 py-1.5 rounded-xl text-xs font-semibold text-center sm:hidden">
+          <div className="mt-1 w-full bg-gray-100 text-gray-500 py-2 rounded-xl text-xs font-semibold text-center">
             Tükendi
           </div>
         ) : (
           <button
             onClick={addToCart}
             disabled={adding}
-            className="mt-2 w-full bg-primary-600 hover:bg-primary-700 active:scale-95 disabled:opacity-60 text-white py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition sm:hidden"
+            className="mt-1 w-full bg-primary-600 hover:bg-primary-700 active:scale-95 disabled:opacity-60 text-white py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

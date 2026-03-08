@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 
 interface Settings {
@@ -42,6 +42,24 @@ export default function AyarlarPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [logoUploading, setLogoUploading] = useState(false)
+  const logoInputRef = useRef<HTMLInputElement>(null)
+
+  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Logo dosyası 2MB\'den küçük olmalıdır.')
+      return
+    }
+    setLogoUploading(true)
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      set('site_logo', ev.target?.result as string)
+      setLogoUploading(false)
+    }
+    reader.readAsDataURL(file)
+  }
 
   useEffect(() => {
     fetch('/api/admin/settings')
@@ -80,13 +98,61 @@ export default function AyarlarPage() {
               <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" value={settings.site_name} onChange={e => set('site_name', e.target.value)} placeholder="Mağazanızın adı" />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Logo URL</label>
-              <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" value={settings.site_logo} onChange={e => set('site_logo', e.target.value)} placeholder="https://..." />
-              {settings.site_logo && (
-                <div className="mt-2 w-32 h-12 relative bg-gray-800 rounded-lg overflow-hidden">
-                  <Image src={settings.site_logo} alt="logo" fill className="object-contain p-1" unoptimized />
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Logo</label>
+              <div className="flex items-start gap-4">
+                {/* Önizleme */}
+                <div
+                  onClick={() => logoInputRef.current?.click()}
+                  className="flex-shrink-0 w-36 h-20 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition overflow-hidden"
+                >
+                  {logoUploading ? (
+                    <svg className="w-6 h-6 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                  ) : settings.site_logo ? (
+                    <Image src={settings.site_logo} alt="logo" fill className="object-contain p-2" unoptimized sizes="144px" />
+                  ) : (
+                    <>
+                      <svg className="w-7 h-7 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-xs text-gray-400">Logo seç</span>
+                    </>
+                  )}
                 </div>
-              )}
+
+                {/* Sağ taraf: butonlar + açıklama */}
+                <div className="flex-1 space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    className="w-full border border-gray-300 hover:border-primary-400 text-gray-700 hover:text-primary-700 bg-white rounded-xl px-3 py-2 text-sm font-medium transition flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Görsel Yükle
+                  </button>
+                  {settings.site_logo && (
+                    <button
+                      type="button"
+                      onClick={() => set('site_logo', '')}
+                      className="w-full border border-red-200 hover:border-red-400 text-red-500 bg-white rounded-xl px-3 py-2 text-sm font-medium transition"
+                    >
+                      Logoyu Kaldır
+                    </button>
+                  )}
+                  <p className="text-xs text-gray-400">PNG, JPG veya SVG. Maks. 2MB.</p>
+                </div>
+              </div>
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleLogoUpload}
+              />
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700 mb-1 block">Telefon</label>
