@@ -6,7 +6,6 @@ import { Footer } from '@/components/layout/Footer'
 import { prisma } from '@/lib/prisma'
 import { getAllSettings } from '@/lib/utils'
 import { getCartCount } from '@/lib/cart'
-
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getAllSettings()
   return {
@@ -15,7 +14,6 @@ export async function generateMetadata(): Promise<Metadata> {
     viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
   }
 }
-
 async function getCategories() {
   return prisma.category.findMany({
     where: { isActive: true, parentId: null },
@@ -29,14 +27,12 @@ async function getCategories() {
     },
   })
 }
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [categories, settings, cartCount] = await Promise.all([
     getCategories(),
     getAllSettings(),
     getCartCount().catch(() => 0),
   ])
-
   return (
     <html lang="tr">
       <body className="min-h-screen flex flex-col">
@@ -55,7 +51,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             email={settings.site_email}
             whatsapp={settings.site_whatsapp}
           />
-          {/* WhatsApp sabit buton */}
           {settings.site_whatsapp && (
             <a
               href={`https://wa.me/${settings.site_whatsapp}`}
@@ -69,25 +64,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </svg>
             </a>
           )}
-          {/* Scroll to top */}
-          <ScrollTopButton />
         </Providers>
       </body>
     </html>
-  )
-}
-
-function ScrollTopButton() {
-  return (
-    <button
-      id="scroll-top"
-      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className="fixed bottom-4 right-4 z-40 bg-white border border-gray-200 text-gray-600 w-10 h-10 rounded-full shadow-lg hidden items-center justify-center hover:bg-gray-50 transition"
-      aria-label="Yukarı çık"
-    >
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-      </svg>
-    </button>
   )
 }
