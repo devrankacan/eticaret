@@ -1,0 +1,358 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// KULLANICI
+// ============================================
+model User {
+  id               String    @id @default(cuid())
+  name             String
+  email            String    @unique
+  phone            String?
+  emailVerified    DateTime?
+  password         String?
+  role             String    @default("user") // "user" | "admin"
+  isActive         Boolean   @default(true)
+  image            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  accounts         Account[]
+  sessions         Session[]
+  orders           Order[]
+  addresses        Address[]
+  reviews          Review[]
+  cartItems        CartItem[]
+}
+
+// NextAuth gerekli modeller
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// KATEGORİ
+// ============================================
+model Category {
+  id          String     @id @default(cuid())
+  parentId    String?
+  name        String
+  slug        String     @unique
+  image       String?
+  description String?
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  products    Product[]
+}
+
+// ============================================
+// ÜRÜN
+// ============================================
+model Product {
+  id               String         @id @default(cuid())
+  categoryId       String
+  name             String
+  slug             String         @unique
+  sku              String?        @unique
+  barcode          String?
+  shortDescription String?
+  description      String?
+  price            Float
+  comparePrice     Float?         // Önceki fiyat (üzeri çizili)
+  costPrice        Float?         // Maliyet (sadece admin)
+  taxRate          Float          @default(18)
+  stock            Int            @default(0)
+  lowStockThreshold Int           @default(5)
+  weight           Float?         // KG - kargo için
+  isActive         Boolean        @default(true)
+  isFeatured       Boolean        @default(false)
+  metaTitle        String?
+  metaDescription  String?
+  views            Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  category         Category       @relation(fields: [categoryId], references: [id])
+  images           ProductImage[]
+  orderItems       OrderItem[]
+  cartItems        CartItem[]
+  reviews          Review[]
+  stockMovements   StockMovement[]
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  imagePath String
+  altText   String?
+  sortOrder Int     @default(0)
+  isPrimary Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// BANNER
+// ============================================
+model Banner {
+  id            String    @id @default(cuid())
+  title         String?
+  imageDesktop  String
+  imageMobile   String?
+  link          String?
+  sortOrder     Int       @default(0)
+  isActive      Boolean   @default(true)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ============================================
+// ADRES
+// ============================================
+model Address {
+  id           String  @id @default(cuid())
+  userId       String
+  title        String  // Ev, İş, vb.
+  name         String
+  phone        String
+  city         String
+  district     String
+  neighborhood String?
+  address      String
+  postalCode   String?
+  isDefault    Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// SEPET
+// ============================================
+model CartItem {
+  id         String   @id @default(cuid())
+  sessionId  String?  // Misafir kullanıcı
+  userId     String?  // Giriş yapmış kullanıcı
+  productId  String
+  quantity   Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// SİPARİŞ
+// ============================================
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  userId          String?
+  status          String      @default("pending")
+  // pending | confirmed | processing | shipped | delivered | cancelled | refunded
+
+  paymentMethod   String      // credit_card | bank_transfer | cash_on_delivery
+  paymentStatus   String      @default("pending") // pending | paid | failed | refunded
+  paymentRef      String?
+
+  // Teslimat adresi snapshot
+  shippingName    String
+  shippingPhone   String
+  shippingCity    String
+  shippingDistrict String
+  shippingAddress String
+  shippingPostalCode String?
+
+  // Fiyatlar
+  subtotal        Float
+  shippingCost    Float       @default(0)
+  discountAmount  Float       @default(0)
+  taxAmount       Float       @default(0)
+  total           Float
+
+  // Kargo
+  cargoCompany        String?
+  cargoTrackingNumber String?
+  cargoTrackingUrl    String?
+  shippedAt           DateTime?
+  deliveredAt         DateTime?
+
+  // Havale
+  bankTransferSender  String?
+  bankTransferAmount  Float?
+  bankTransferDate    String?
+
+  // Notlar
+  customerNote    String?
+  adminNote       String?
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items           OrderItem[]
+  history         OrderHistory[]
+}
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  orderId      String
+  productId    String?
+  productName  String  // Snapshot
+  productSku   String?
+  productImage String?
+  quantity     Int
+  unitPrice    Float
+  totalPrice   Float
+  createdAt    DateTime @default(now())
+
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+}
+
+model OrderHistory {
+  id        String   @id @default(cuid())
+  orderId   String
+  status    String
+  note      String?
+  createdBy String?
+  createdAt DateTime @default(now())
+
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// KUPON
+// ============================================
+model Coupon {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  type            String    @default("percentage") // percentage | fixed
+  value           Float
+  minOrderAmount  Float     @default(0)
+  maxUses         Int?
+  usedCount       Int       @default(0)
+  isActive        Boolean   @default(true)
+  startsAt        DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
+}
+
+// ============================================
+// BANKA HESAPLARI
+// ============================================
+model BankAccount {
+  id          String  @id @default(cuid())
+  bankName    String
+  accountName String
+  iban        String
+  branch      String?
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+  createdAt   DateTime @default(now())
+}
+
+// ============================================
+// KARGO FİRMALARI
+// ============================================
+model CargoCompany {
+  id                   String  @id @default(cuid())
+  name                 String
+  code                 String  @unique // yurtici | aras | mng
+  apiUrl               String?
+  apiUser              String?
+  apiPassword          String?
+  apiKey               String?
+  customerNumber       String?
+  trackingUrl          String? // {tracking_number} placeholder
+  freeShippingThreshold Float?
+  baseShippingCost     Float   @default(0)
+  isActive             Boolean @default(true)
+  isDefault            Boolean @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+// ============================================
+// STOK HAREKETLERİ
+// ============================================
+model StockMovement {
+  id            String   @id @default(cuid())
+  productId     String
+  type          String   // in | out | adjustment
+  quantity      Int
+  previousStock Int
+  newStock      Int
+  reason        String?
+  referenceId   String?
+  createdBy     String?
+  createdAt     DateTime @default(now())
+
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// ÜRÜN YORUMLARI
+// ============================================
+model Review {
+  id         String   @id @default(cuid())
+  productId  String
+  userId     String?
+  orderId    String?
+  name       String
+  rating     Int
+  comment    String?
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// ============================================
+// SİTE AYARLARI (Key-Value store)
+// ============================================
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String?
+  group     String   @default("general")
+  updatedAt DateTime @updatedAt
+}
