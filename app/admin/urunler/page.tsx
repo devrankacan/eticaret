@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -33,8 +33,9 @@ export default function UrunlerPage() {
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const emptyForm = { name: '', categoryId: '', price: '', comparePrice: '', stock: '0', weight: '', shortDescription: '', isActive: true, isFeatured: false, images: [{ url: '' }] }
+  const emptyForm = { name: '', categoryId: '', price: '', comparePrice: '', stock: '0', weight: '', shortDescription: '', isActive: true, isFeatured: false, images: [{ url: '', uploading: false }] }
   const [form, setForm] = useState(emptyForm)
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const fetchProducts = useCallback(async () => {
     setLoading(true)
@@ -65,7 +66,7 @@ export default function UrunlerPage() {
       comparePrice: p.comparePrice?.toString() || '', stock: p.stock.toString(),
       weight: p.weight?.toString() || '', shortDescription: p.shortDescription || '',
       isActive: p.isActive, isFeatured: p.isFeatured,
-      images: p.images.length ? p.images.map((i: any) => ({ url: i.imagePath })) : [{ url: '' }],
+      images: p.images.length ? p.images.map((i: any) => ({ url: i.imagePath, uploading: false })) : [{ url: '', uploading: false }],
     })
     setEditId(id)
     setShowForm(true)
@@ -90,9 +91,21 @@ export default function UrunlerPage() {
     fetchProducts()
   }
 
-  const addImageRow = () => setForm(f => ({ ...f, images: [...f.images, { url: '' }] }))
+  const addImageRow = () => setForm(f => ({ ...f, images: [...f.images, { url: '', uploading: false }] }))
   const removeImageRow = (i: number) => setForm(f => ({ ...f, images: f.images.filter((_, idx) => idx !== i) }))
-  const setImageUrl = (i: number, url: string) => setForm(f => ({ ...f, images: f.images.map((img, idx) => idx === i ? { url } : img) }))
+  const setImageUrl = (i: number, url: string) => setForm(f => ({ ...f, images: f.images.map((img, idx) => idx === i ? { ...img, url } : img) }))
+
+  function handleImageFile(i: number, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) { alert('Görsel 5MB\'den küçük olmalıdır.'); return }
+    setForm(f => ({ ...f, images: f.images.map((img, idx) => idx === i ? { ...img, uploading: true } : img) }))
+    const reader = new FileReader()
+    reader.onload = ev => {
+      setForm(f => ({ ...f, images: f.images.map((img, idx) => idx === i ? { url: ev.target?.result as string, uploading: false } : img) }))
+    }
+    reader.readAsDataURL(file)
+  }
 
   return (
     <div className="p-4 sm:p-6">
@@ -256,26 +269,61 @@ export default function UrunlerPage() {
                   <textarea rows={2} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none" value={form.shortDescription} onChange={e => setForm(f => ({ ...f, shortDescription: e.target.value }))} />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Ürün Görselleri (URL)</label>
-                  <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Ürün Görselleri</label>
+                  <div className="space-y-3">
                     {form.images.map((img, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <input className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" placeholder={i === 0 ? 'Ana görsel URL...' : `Görsel ${i + 1} URL...`} value={img.url} onChange={e => setImageUrl(i, e.target.value)} />
+                      <div key={i} className="flex gap-2">
+                        {/* Önizleme / Yükle alanı */}
+                        <div
+                          onClick={() => fileInputRefs.current[i]?.click()}
+                          className="flex-shrink-0 w-16 h-16 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-primary-400 transition overflow-hidden relative"
+                        >
+                          {img.uploading ? (
+                            <svg className="w-5 h-5 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                            </svg>
+                          ) : img.url ? (
+                            <Image src={img.url} alt="" fill className="object-cover" unoptimized sizes="64px"/>
+                          ) : (
+                            <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                          )}
+                        </div>
+                        <input
+                          ref={el => { fileInputRefs.current[i] = el }}
+                          type="file" accept="image/*" className="hidden"
+                          onChange={e => handleImageFile(i, e)}
+                        />
+                        {/* URL girişi */}
+                        <div className="flex-1 flex flex-col gap-1.5">
+                          <input
+                            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                            placeholder={i === 0 ? 'URL yapıştır veya soldaki kutuya tıkla' : `Görsel ${i + 1} URL veya yükle`}
+                            value={img.url.startsWith('data:') ? '' : img.url}
+                            onChange={e => setImageUrl(i, e.target.value)}
+                          />
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => fileInputRefs.current[i]?.click()} className="text-xs text-primary-600 hover:underline flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                              </svg>
+                              Bilgisayardan yükle
+                            </button>
+                            {img.url && <button type="button" onClick={() => setImageUrl(i, '')} className="text-xs text-red-400 hover:text-red-600">Temizle</button>}
+                          </div>
+                        </div>
                         {form.images.length > 1 && (
-                          <button onClick={() => removeImageRow(i)} className="p-2 text-red-400 hover:text-red-600">
+                          <button type="button" onClick={() => removeImageRow(i)} className="p-2 text-gray-300 hover:text-red-500 self-start">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                           </button>
                         )}
-                        {img.url && (
-                          <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden relative flex-shrink-0">
-                            <Image src={img.url} alt="" fill className="object-cover" unoptimized />
-                          </div>
-                        )}
                       </div>
                     ))}
-                    <button onClick={addImageRow} className="text-sm text-primary-600 hover:underline">+ Görsel Ekle</button>
+                    <button type="button" onClick={addImageRow} className="text-sm text-primary-600 hover:underline">+ Görsel Ekle</button>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
