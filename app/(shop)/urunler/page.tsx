@@ -1,6 +1,8 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { prisma } from '@/lib/prisma'
 import { ProductCard } from '@/components/product/ProductCard'
+import { SortSelect } from '@/components/product/SortSelect'
 
 interface Props {
   searchParams: { sayfa?: string; siralama?: string; q?: string; kategori?: string }
@@ -112,16 +114,9 @@ export default async function UrunlerPage({ searchParams }: Props) {
                 </svg>
               </button>
             </form>
-            <select
-              defaultValue={siralama}
-              onChange={e => { window.location.href = buildUrl({ siralama: e.target.value, sayfa: '1' }) }}
-              className="border border-gray-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none bg-white"
-            >
-              <option value="yeni">En Yeni</option>
-              <option value="populer">En Popüler</option>
-              <option value="fiyat-artan">Fiyat ↑</option>
-              <option value="fiyat-azalan">Fiyat ↓</option>
-            </select>
+            <Suspense>
+              <SortSelect current={siralama} />
+            </Suspense>
           </div>
 
           {/* Mobil kategoriler */}

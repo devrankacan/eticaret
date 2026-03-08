@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { prisma } from '@/lib/prisma'
 import { ProductCard } from '@/components/product/ProductCard'
+import { SortSelect } from '@/components/product/SortSelect'
 
 interface Props {
   params: { slug: string }
@@ -111,21 +113,9 @@ export default async function KategoriPage({ params, searchParams }: Props) {
               <h1 className="text-xl font-bold text-gray-900">{category.name}</h1>
               <p className="text-sm text-gray-400">{total} ürün</p>
             </div>
-            <select
-              defaultValue={siralama}
-              onChange={e => {
-                const url = new URL(window.location.href)
-                url.searchParams.set('siralama', e.target.value)
-                url.searchParams.delete('sayfa')
-                window.location.href = url.toString()
-              }}
-              className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white"
-            >
-              <option value="yeni">En Yeni</option>
-              <option value="populer">En Popüler</option>
-              <option value="fiyat-artan">Fiyat: Artan</option>
-              <option value="fiyat-azalan">Fiyat: Azalan</option>
-            </select>
+            <Suspense>
+              <SortSelect current={siralama} />
+            </Suspense>
           </div>
 
           {/* Mobil alt kategoriler */}
