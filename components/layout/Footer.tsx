@@ -1,20 +1,26 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface FooterProps {
   siteName: string
+  siteLogo?: string
   phone?: string
   email?: string
   whatsapp?: string
 }
 
-export function Footer({ siteName, phone, email, whatsapp }: FooterProps) {
+export function Footer({ siteName, siteLogo, phone, email, whatsapp }: FooterProps) {
   return (
     <footer className="bg-[#1a2e1a] text-white mt-8">
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Logo & Hakkında */}
           <div>
-            <h3 className="font-bold text-lg mb-3">{siteName}</h3>
+            {siteLogo ? (
+              <Image src={siteLogo} alt={siteName} width={140} height={48} className="h-12 w-auto object-contain mb-3" unoptimized />
+            ) : (
+              <h3 className="font-bold text-lg mb-3">{siteName}</h3>
+            )}
             <p className="text-gray-400 text-sm leading-relaxed">
               Kaliteli ürünleri uygun fiyatlarla kapınıza kadar getiriyoruz.
             </p>

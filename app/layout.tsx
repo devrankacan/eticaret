@@ -47,6 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </main>
           <Footer
             siteName={settings.site_name || 'Mağaza'}
+            siteLogo={settings.site_logo || undefined}
             phone={settings.site_phone}
             email={settings.site_email}
             whatsapp={settings.site_whatsapp}

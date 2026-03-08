@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 
 interface Banner {
@@ -29,6 +29,8 @@ export default function BannerlarPage() {
   const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const desktopInputRef = useRef<HTMLInputElement>(null)
+  const mobileInputRef = useRef<HTMLInputElement>(null)
 
   const fetch_ = async () => {
     setLoading(true)
@@ -73,6 +75,17 @@ export default function BannerlarPage() {
     fetch_()
   }
 
+  function handleImageFile(field: 'imageDesktop' | 'imageMobile', e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) { alert("Görsel 5MB'den küçük olmalıdır."); return }
+    const reader = new FileReader()
+    reader.onload = ev => {
+      setForm(f => ({ ...f, [field]: ev.target?.result as string }))
+    }
+    reader.readAsDataURL(file)
+  }
+
   return (
     <div className="p-4 sm:p-6">
       <div className="flex items-center justify-between mb-5">
@@ -83,12 +96,6 @@ export default function BannerlarPage() {
           </svg>
           Yeni Banner
         </button>
-      </div>
-
-      {/* Bilgi notu */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5 text-sm text-blue-800">
-        <strong>Görsel URL Nasıl Eklenir?</strong> Görselinizi Cloudinary, ImgBB veya başka bir CDN&apos;e yükleyip URL&apos;yi buraya yapıştırın.
-        Mobil için 750×400px, Masaüstü için 1920×600px önerilir.
       </div>
 
       {loading ? (
@@ -106,8 +113,6 @@ export default function BannerlarPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900 truncate">{b.title || '(Başlıksız)'}</p>
-                <p className="text-xs text-gray-400 truncate">{b.imageDesktop}</p>
-                {b.imageMobile && <p className="text-xs text-blue-500 truncate">Mobil: {b.imageMobile}</p>}
                 {b.link && <p className="text-xs text-green-600 truncate">→ {b.link}</p>}
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -133,7 +138,6 @@ export default function BannerlarPage() {
         </div>
       )}
 
-      {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
@@ -150,26 +154,83 @@ export default function BannerlarPage() {
                 <label className="text-sm font-medium text-gray-700 mb-1 block">Başlık (opsiyonel)</label>
                 <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
               </div>
+
+              {/* Masaüstü Görsel */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Masaüstü Görsel URL <span className="text-red-500">*</span></label>
-                <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" placeholder="https://..." value={form.imageDesktop} onChange={e => setForm(f => ({ ...f, imageDesktop: e.target.value }))} />
-                <p className="text-xs text-gray-400 mt-1">Önerilen: 1920×600px</p>
-                {form.imageDesktop && (
-                  <div className="mt-2 rounded-xl overflow-hidden bg-gray-100 h-24 relative">
-                    <Image src={form.imageDesktop} alt="önizleme" fill className="object-cover" unoptimized />
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Masaüstü Görsel <span className="text-red-500">*</span>
+                  <span className="text-gray-400 font-normal ml-1 text-xs">(1920×600px önerilir)</span>
+                </label>
+                <div className="flex gap-3">
+                  <div
+                    onClick={() => desktopInputRef.current?.click()}
+                    className="flex-shrink-0 w-28 h-16 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-primary-400 transition overflow-hidden relative"
+                  >
+                    {form.imageDesktop ? (
+                      <Image src={form.imageDesktop} alt="" fill className="object-cover" unoptimized sizes="112px" />
+                    ) : (
+                      <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                    )}
                   </div>
-                )}
+                  <div className="flex-1 space-y-1.5">
+                    <input
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                      placeholder="URL yapıştır veya dosya yükle"
+                      value={form.imageDesktop.startsWith('data:') ? '' : form.imageDesktop}
+                      onChange={e => setForm(f => ({ ...f, imageDesktop: e.target.value }))}
+                    />
+                    <div className="flex gap-3">
+                      <button type="button" onClick={() => desktopInputRef.current?.click()} className="text-xs text-primary-600 hover:underline flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                        Dosyadan yükle
+                      </button>
+                      {form.imageDesktop && <button type="button" onClick={() => setForm(f => ({ ...f, imageDesktop: '' }))} className="text-xs text-red-400 hover:text-red-600">Temizle</button>}
+                    </div>
+                  </div>
+                </div>
+                <input ref={desktopInputRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageFile('imageDesktop', e)} />
               </div>
+
+              {/* Mobil Görsel */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">Mobil Görsel URL</label>
-                <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" placeholder="https://... (ayrı mobil görsel)" value={form.imageMobile || ''} onChange={e => setForm(f => ({ ...f, imageMobile: e.target.value }))} />
-                <p className="text-xs text-gray-400 mt-1">Önerilen: 750×400px — Boş bırakılırsa masaüstü görseli kullanılır</p>
-                {form.imageMobile && (
-                  <div className="mt-2 rounded-xl overflow-hidden bg-gray-100 h-20 relative">
-                    <Image src={form.imageMobile} alt="mobil önizleme" fill className="object-cover" unoptimized />
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Mobil Görsel
+                  <span className="text-gray-400 font-normal ml-1 text-xs">(750×400px — boşsa masaüstü kullanılır)</span>
+                </label>
+                <div className="flex gap-3">
+                  <div
+                    onClick={() => mobileInputRef.current?.click()}
+                    className="flex-shrink-0 w-28 h-16 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-primary-400 transition overflow-hidden relative"
+                  >
+                    {form.imageMobile ? (
+                      <Image src={form.imageMobile} alt="" fill className="object-cover" unoptimized sizes="112px" />
+                    ) : (
+                      <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                    )}
                   </div>
-                )}
+                  <div className="flex-1 space-y-1.5">
+                    <input
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                      placeholder="URL yapıştır veya dosya yükle"
+                      value={form.imageMobile ? (form.imageMobile.startsWith('data:') ? '' : form.imageMobile) : ''}
+                      onChange={e => setForm(f => ({ ...f, imageMobile: e.target.value }))}
+                    />
+                    <div className="flex gap-3">
+                      <button type="button" onClick={() => mobileInputRef.current?.click()} className="text-xs text-primary-600 hover:underline flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                        Dosyadan yükle
+                      </button>
+                      {form.imageMobile && <button type="button" onClick={() => setForm(f => ({ ...f, imageMobile: '' }))} className="text-xs text-red-400 hover:text-red-600">Temizle</button>}
+                    </div>
+                  </div>
+                </div>
+                <input ref={mobileInputRef} type="file" accept="image/*" className="hidden" onChange={e => handleImageFile('imageMobile', e)} />
               </div>
+
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">Link (opsiyonel)</label>
                 <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" placeholder="/kategori/bal-pekmez" value={form.link || ''} onChange={e => setForm(f => ({ ...f, link: e.target.value }))} />
