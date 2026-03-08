@@ -2,14 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
-// Güvenlik: Sadece secret key ile çalışır
-const SEED_SECRET = process.env.SEED_SECRET || 'seed-dogal-lezzet-2026'
-
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url)
-  if (searchParams.get('secret') !== SEED_SECRET) {
-    return NextResponse.json({ error: 'Yetkisiz' }, { status: 401 })
-  }
 
   const results: string[] = []
 
