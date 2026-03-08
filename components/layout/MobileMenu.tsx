@@ -21,6 +21,17 @@ interface Props {
   onSignOut: () => void
 }
 
+const staticLinks = [
+  { href: '/', label: 'Anasayfa' },
+  { href: '/hakkimizda', label: 'Hakkımızda' },
+  { href: '/urunler', label: 'Tüm Ürünler' },
+  { href: '/kategori/bal-pekmez', label: 'Bal & Pekmez' },
+  { href: '/kategori/peynirler', label: 'Peynirler' },
+  { href: '/kategori/tereyagi', label: 'Tereyağı' },
+  { href: '/kategori/dogal-urunler', label: 'Doğal Ürünler' },
+  { href: '/iletisim', label: 'İletişim' },
+]
+
 export function MobileMenu({ isOpen, onClose, categories, session, onLoginClick, onSignOut }: Props) {
   const [openCats, setOpenCats] = useState<string[]>([])
 
@@ -56,51 +67,70 @@ export function MobileMenu({ isOpen, onClose, categories, session, onLoginClick,
           </button>
         </div>
 
-        {/* Kategoriler */}
         <nav className="flex-1 p-4">
-          <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-3 px-2">Kategoriler</p>
-          <div className="space-y-0.5">
-            {categories.map(cat => (
-              <div key={cat.id}>
-                <div className="flex items-center">
-                  <Link
-                    href={`/kategori/${cat.slug}`}
-                    onClick={onClose}
-                    className="flex-1 py-2.5 px-3 rounded-xl hover:bg-gray-50 font-medium text-gray-800 transition"
-                  >
-                    {cat.name}
-                  </Link>
-                  {cat.children.length > 0 && (
-                    <button
-                      onClick={() => toggleCat(cat.id)}
-                      className="p-2 rounded-xl hover:bg-gray-50 text-gray-400 transition"
-                    >
-                      <svg
-                        className={`w-4 h-4 transition-transform ${openCats.includes(cat.id) ? 'rotate-180' : ''}`}
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-                {cat.children.length > 0 && openCats.includes(cat.id) && (
-                  <div className="pl-5 pb-2 space-y-0.5">
-                    {cat.children.map(child => (
-                      <Link
-                        key={child.id}
-                        href={`/kategori/${child.slug}`}
-                        onClick={onClose}
-                        className="block py-2 px-3 text-sm text-gray-600 hover:text-primary-600 rounded-xl hover:bg-gray-50 transition"
-                      >
-                        {child.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
+          {/* Sabit menü linkleri */}
+          <div className="space-y-0.5 mb-4">
+            {staticLinks.map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={onClose}
+                className="flex items-center py-2.5 px-3 rounded-xl hover:bg-gray-50 font-medium text-gray-800 transition"
+              >
+                {link.label}
+              </Link>
             ))}
           </div>
+
+          {/* Veritabanındaki kategoriler (varsa) */}
+          {categories.length > 0 && (
+            <>
+              <hr className="my-3" />
+              <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-3 px-2">Tüm Kategoriler</p>
+              <div className="space-y-0.5">
+                {categories.map(cat => (
+                  <div key={cat.id}>
+                    <div className="flex items-center">
+                      <Link
+                        href={`/kategori/${cat.slug}`}
+                        onClick={onClose}
+                        className="flex-1 py-2.5 px-3 rounded-xl hover:bg-gray-50 font-medium text-gray-700 transition text-sm"
+                      >
+                        {cat.name}
+                      </Link>
+                      {cat.children.length > 0 && (
+                        <button
+                          onClick={() => toggleCat(cat.id)}
+                          className="p-2 rounded-xl hover:bg-gray-50 text-gray-400 transition"
+                        >
+                          <svg
+                            className={`w-4 h-4 transition-transform ${openCats.includes(cat.id) ? 'rotate-180' : ''}`}
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {cat.children.length > 0 && openCats.includes(cat.id) && (
+                      <div className="pl-5 pb-2 space-y-0.5">
+                        {cat.children.map(child => (
+                          <Link
+                            key={child.id}
+                            href={`/kategori/${child.slug}`}
+                            onClick={onClose}
+                            className="block py-2 px-3 text-sm text-gray-600 hover:text-primary-600 rounded-xl hover:bg-gray-50 transition"
+                          >
+                            {child.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
           <hr className="my-4" />
 
