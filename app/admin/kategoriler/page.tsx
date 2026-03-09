@@ -60,7 +60,12 @@ export default function KategorilerPage() {
 
   const del = async (id: string) => {
     if (!confirm('Bu kategori silinsin mi?')) return
-    await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || 'Silinemedi.')
+      return
+    }
     fetch_()
   }
 
@@ -78,12 +83,17 @@ export default function KategorilerPage() {
   const bulkDelete = async () => {
     if (!confirm(`Seçili ${selected.size} kategori silinsin mi?`)) return
     setBulkLoading(true)
-    await fetch('/api/admin/categories/bulk', {
+    const res = await fetch('/api/admin/categories/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'delete', ids: Array.from(selected) }),
     })
     setBulkLoading(false)
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || 'Silinemedi.')
+      return
+    }
     fetch_()
   }
 
