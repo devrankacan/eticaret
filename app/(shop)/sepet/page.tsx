@@ -15,8 +15,16 @@ interface CartItem {
     price: number
     comparePrice?: number
     stock: number
+    hasVariations: boolean
     images: { imagePath: string; altText?: string }[]
   }
+  variation?: {
+    id: string
+    name: string
+    price: number
+    comparePrice?: number
+    stock: number
+  } | null
 }
 
 export default function SepetPage() {
@@ -78,7 +86,8 @@ export default function SepetPage() {
     setCouponLoading(false)
   }
 
-  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
+  const getItemPrice = (item: CartItem) => item.variation ? item.variation.price : item.product.price
+  const subtotal = items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0)
   const shippingCost = subtotal >= 500 ? 0 : 39.9
   const total = subtotal - discount + shippingCost
 
@@ -144,13 +153,18 @@ export default function SepetPage() {
                     className="text-gray-800 font-medium text-sm hover:text-primary-600 transition line-clamp-2">
                     {item.product.name}
                   </Link>
+                  {item.variation && (
+                    <span className="inline-block mt-0.5 text-xs bg-gray-100 text-gray-600 font-medium px-2 py-0.5 rounded-md">
+                      {item.variation.name}
+                    </span>
+                  )}
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-primary-700 font-bold">
-                      {item.product.price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL
+                      {getItemPrice(item).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL
                     </span>
-                    {item.product.comparePrice && (
+                    {(item.variation?.comparePrice || item.product.comparePrice) && (
                       <span className="text-gray-400 line-through text-xs">
-                        {item.product.comparePrice.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL
+                        {(item.variation?.comparePrice ?? item.product.comparePrice)!.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL
                       </span>
                     )}
                   </div>

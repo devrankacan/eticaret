@@ -26,6 +26,7 @@ export default async function ProductPage({ params }: Props) {
       category: { include: { parent: true } },
       images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }] },
       reviews: { where: { isApproved: true }, orderBy: { createdAt: 'desc' } },
+      variations: { orderBy: { sortOrder: 'asc' } },
     },
   })
 
@@ -48,12 +49,16 @@ export default async function ProductPage({ params }: Props) {
     take: 6,
   })
 
-  const discountPercent = product.comparePrice && product.comparePrice > product.price
+  const hasVariations = product.hasVariations && product.variations.length > 0
+
+  const discountPercent = !hasVariations && product.comparePrice && product.comparePrice > product.price
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
     : null
 
-  const isOutOfStock = product.stock <= 0
-  const isLowStock = product.stock > 0 && product.stock <= product.lowStockThreshold
+  const isOutOfStock = hasVariations
+    ? product.variations.every(v => v.stock <= 0)
+    : product.stock <= 0
+  const isLowStock = !hasVariations && product.stock > 0 && product.stock <= product.lowStockThreshold
 
   const avgRating = product.reviews.length > 0
     ? product.reviews.reduce((a, r) => a + r.rating, 0) / product.reviews.length
@@ -108,37 +113,46 @@ export default async function ProductPage({ params }: Props) {
               </div>
             )}
 
-            {/* Fiyat */}
-            <div className="mt-4 flex items-end gap-3">
-              <span className="price font-bold text-3xl">{formatPrice(product.price)}</span>
-              {product.comparePrice && (
-                <span className="text-gray-400 text-lg line-through">{formatPrice(product.comparePrice)}</span>
-              )}
-            </div>
-            <p className="text-gray-400 text-xs mt-0.5">KDV dahildir</p>
+            {/* Fiyat — varyasyonsuz ürünlerde statik, varyasyonlularda ProductActions içinde dinamik */}
+            {!hasVariations && (
+              <>
+                <div className="mt-4 flex items-end gap-3">
+                  <span className="price font-bold text-3xl">{formatPrice(product.price)}</span>
+                  {product.comparePrice && (
+                    <span className="text-gray-400 text-lg line-through">{formatPrice(product.comparePrice)}</span>
+                  )}
+                </div>
+                <p className="text-gray-400 text-xs mt-0.5">KDV dahildir</p>
+              </>
+            )}
+            {hasVariations && (
+              <p className="mt-3 text-sm text-gray-500">Fiyat için seçenek seçiniz</p>
+            )}
 
-            {/* Stok durumu */}
-            <div className="mt-3">
-              {isOutOfStock ? (
-                <span className="inline-flex items-center gap-1.5 bg-red-50 text-red-700 text-sm font-medium px-3 py-1.5 rounded-full">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                  Stokta Yok
-                </span>
-              ) : isLowStock ? (
-                <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 text-sm font-medium px-3 py-1.5 rounded-full">
-                  Son {product.stock} adet
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-sm font-medium px-3 py-1.5 rounded-full">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  Stokta Var
-                </span>
-              )}
-            </div>
+            {/* Stok durumu (sadece varyasyonsuz ürünler) */}
+            {!hasVariations && (
+              <div className="mt-3">
+                {isOutOfStock ? (
+                  <span className="inline-flex items-center gap-1.5 bg-red-50 text-red-700 text-sm font-medium px-3 py-1.5 rounded-full">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    Stokta Yok
+                  </span>
+                ) : isLowStock ? (
+                  <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 text-sm font-medium px-3 py-1.5 rounded-full">
+                    Son {product.stock} adet
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 text-sm font-medium px-3 py-1.5 rounded-full">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Stokta Var
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Kısa açıklama */}
             {product.shortDescription && (
@@ -151,6 +165,9 @@ export default async function ProductPage({ params }: Props) {
               productName={product.name}
               maxStock={product.stock}
               isOutOfStock={isOutOfStock}
+              variations={product.variations}
+              basePrice={product.price}
+              baseComparePrice={product.comparePrice}
             />
 
             {/* Güven rozetleri */}

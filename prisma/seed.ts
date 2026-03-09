@@ -4,424 +4,426 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Seed başlıyor...')
+  console.log('🌱 Seed başlatılıyor...')
 
-  // ============================================
-  // ADMİN KULLANICISI
-  // ============================================
+  // ─── Admin kullanıcı ────────────────────────────────────
   const hashedPassword = await bcrypt.hash('admin123', 10)
-  const admin = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'admin@site.com' },
     update: {},
+    create: { email: 'admin@site.com', name: 'Admin', password: hashedPassword, role: 'admin' },
+  })
+
+  // ─── Eski ürün/kategori verilerini temizle ────────────────
+  console.log('🗑  Eski veriler temizleniyor...')
+  await prisma.cartItem.deleteMany()
+  await prisma.orderItem.deleteMany()
+  await prisma.productImage.deleteMany()
+  await prisma.productVariation.deleteMany()
+  await prisma.review.deleteMany()
+  await prisma.stockMovement.deleteMany()
+  await prisma.product.deleteMany()
+  await prisma.category.deleteMany()
+
+  // ─── Kargo firmaları ─────────────────────────────────────
+  await prisma.cargoCompany.upsert({
+    where: { code: 'yurtici' },
+    update: {},
     create: {
-      name: 'Admin',
-      email: 'admin@site.com',
-      password: hashedPassword,
-      role: 'admin',
+      name: 'Yurtiçi Kargo', code: 'yurtici',
+      trackingUrl: 'https://www.yurticikargo.com/tr/online-islemler/gonderi-sorgula?code={tracking_number}',
+      baseShippingCost: 39.90, freeShippingThreshold: 500, isActive: true, isDefault: true,
     },
   })
-  console.log('✅ Admin:', admin.email)
+  await prisma.cargoCompany.upsert({
+    where: { code: 'aras' },
+    update: {},
+    create: {
+      name: 'Aras Kargo', code: 'aras',
+      trackingUrl: 'https://www.araskargo.com.tr/hizmetler/gonderitakip.aspx?tkn={tracking_number}',
+      baseShippingCost: 39.90, isActive: true, isDefault: false,
+    },
+  })
 
-  // ============================================
-  // SİTE AYARLARI
-  // ============================================
+  // ─── Site ayarları ────────────────────────────────────────
   const settings = [
-    { key: 'site_name',               value: 'Doğal Lezzet',          group: 'general' },
-    { key: 'site_logo',               value: '',                       group: 'general' },
-    { key: 'site_phone',              value: '0212 555 44 33',         group: 'contact' },
-    { key: 'site_email',              value: 'info@dogallezzet.com',   group: 'contact' },
-    { key: 'site_whatsapp',           value: '905551234567',           group: 'contact' },
-    { key: 'site_address',            value: 'Atatürk Cad. No:12\nBeyoğlu / İstanbul', group: 'contact' },
-    { key: 'about_text',              value: '2010 yılından bu yana doğal ve organik gıda ürünlerini sizlerle buluşturuyoruz. Türkiye\'nin dört bir yanından özenle seçilmiş köy ürünleri, organik bal çeşitleri, geleneksel yöntemlerle üretilmiş peynirler ve doğal tereyağları ile sofralarınıza lezzet katıyoruz.\n\nTüm ürünlerimiz doğrudan üreticilerden temin edilmekte olup hiçbir katkı maddesi içermemektedir.', group: 'general' },
-    { key: 'social_instagram',        value: 'https://instagram.com',  group: 'social' },
-    { key: 'social_facebook',         value: 'https://facebook.com',   group: 'social' },
-    { key: 'social_youtube',          value: '',                       group: 'social' },
-    { key: 'seo_title',               value: 'Doğal Lezzet | Organik & Doğal Ürünler', group: 'seo' },
-    { key: 'seo_description',         value: 'En kaliteli doğal bal, peynir, tereyağı ve organik gıda ürünleri. Üreticiden sofrağınıza en taze ürünler.', group: 'seo' },
-    { key: 'meta_description',        value: 'En kaliteli doğal bal, peynir, tereyağı ve organik gıda ürünleri.', group: 'seo' },
-    { key: 'free_shipping_threshold', value: '500',                    group: 'shipping' },
-    { key: 'min_order_amount',        value: '0',                      group: 'shipping' },
-    { key: 'bank_transfer_enabled',   value: '1',                      group: 'payment' },
-    { key: 'cash_on_delivery_enabled',value: '1',                      group: 'payment' },
-    { key: 'cash_on_delivery_fee',    value: '0',                      group: 'payment' },
-    { key: 'iyzico_enabled',          value: '0',                      group: 'payment' },
-    { key: 'iyzico_api_key',          value: '',                       group: 'payment' },
-    { key: 'iyzico_secret_key',       value: '',                       group: 'payment' },
-    { key: 'iyzico_base_url',         value: 'https://sandbox-api.iyzipay.com', group: 'payment' },
+    { key: 'site_name',              value: 'Ateşoğlu Süt',      group: 'general' },
+    { key: 'site_logo',              value: '',                   group: 'general' },
+    { key: 'site_phone',             value: '',                   group: 'general' },
+    { key: 'site_email',             value: 'info@atesoglusut.com', group: 'general' },
+    { key: 'site_whatsapp',          value: '',                   group: 'general' },
+    { key: 'free_shipping_threshold',value: '500',                group: 'shipping' },
+    { key: 'shipping_cost',          value: '39.90',              group: 'shipping' },
+    { key: 'payment_credit_card',    value: 'false',              group: 'payment' },
+    { key: 'payment_bank_transfer',  value: 'true',               group: 'payment' },
+    { key: 'payment_cash_on_delivery', value: 'true',             group: 'payment' },
+    { key: 'tax_rate',               value: '8',                  group: 'general' },
   ]
   for (const s of settings) {
     await prisma.setting.upsert({ where: { key: s.key }, update: { value: s.value }, create: s })
   }
-  console.log('✅ Site ayarları')
 
-  // ============================================
-  // KARGO FİRMALARI
-  // ============================================
-  await prisma.cargoCompany.createMany({
-    skipDuplicates: true,
-    data: [
-      { name: 'Yurtiçi Kargo', code: 'yurtici', trackingUrl: 'https://www.yurticikargo.com/tr/online-islemler/gonderi-sorgula?code={tracking_number}', freeShippingThreshold: 500, baseShippingCost: 39.90, isActive: true, isDefault: true },
-      { name: 'Aras Kargo',    code: 'aras',    trackingUrl: 'https://www.araskargo.com.tr/pages/kargo-takip.aspx?q={tracking_number}', baseShippingCost: 44.90, isActive: true },
-      { name: 'MNG Kargo',     code: 'mng',     trackingUrl: 'https://www.mngkargo.com.tr/wps/portal/mng/main/gonderitakip?durum=TAKIP&takipNo={tracking_number}', baseShippingCost: 44.90, isActive: true },
-    ],
-  })
-  console.log('✅ Kargo firmaları')
+  // ─── Kategoriler ─────────────────────────────────────────
+  console.log('📂 Kategoriler oluşturuluyor...')
+  const catPeynir  = await prisma.category.create({ data: { name: 'Peynirler',     slug: 'peynirler',     sortOrder: 1 } })
+  const catBal     = await prisma.category.create({ data: { name: 'Bal & Pekmez',  slug: 'bal-pekmez',    sortOrder: 2 } })
+  const catTereyag = await prisma.category.create({ data: { name: 'Tereyağı',      slug: 'tereyagi',      sortOrder: 3 } })
+  const catDogal   = await prisma.category.create({ data: { name: 'Doğal Ürünler', slug: 'dogal-urunler', sortOrder: 4 } })
 
-  // ============================================
-  // KATEGORİLER
-  // ============================================
-  const balPekmez = await prisma.category.upsert({
-    where: { slug: 'bal-pekmez' },
-    update: { name: 'Bal & Pekmez', image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=300&q=80', sortOrder: 1 },
-    create: { name: 'Bal & Pekmez', slug: 'bal-pekmez', image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=300&q=80', description: 'Doğal ve organik bal çeşitleri, üzüm & dut pekmezi', sortOrder: 1 },
-  })
-  const peynirler = await prisma.category.upsert({
-    where: { slug: 'peynirler' },
-    update: { name: 'Peynirler', image: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=300&q=80', sortOrder: 2 },
-    create: { name: 'Peynirler', slug: 'peynirler', image: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=300&q=80', description: 'El yapımı köy peynirleri, tulum ve kaşar çeşitleri', sortOrder: 2 },
-  })
-  const tereyagi = await prisma.category.upsert({
-    where: { slug: 'tereyagi' },
-    update: { name: 'Tereyağı', image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=300&q=80', sortOrder: 3 },
-    create: { name: 'Tereyağı', slug: 'tereyagi', image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=300&q=80', description: 'Köy tereyağı ve kaymak çeşitleri', sortOrder: 3 },
-  })
-  const dogalUrunler = await prisma.category.upsert({
-    where: { slug: 'dogal-urunler' },
-    update: { name: 'Doğal Ürünler', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&q=80', sortOrder: 4 },
-    create: { name: 'Doğal Ürünler', slug: 'dogal-urunler', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&q=80', description: 'Zeytin, zeytinyağı, tahin, reçel ve daha fazlası', sortOrder: 4 },
-  })
-  const receller = await prisma.category.upsert({
-    where: { slug: 'recel-marmelat' },
-    update: { name: 'Reçel & Marmelat', image: 'https://images.unsplash.com/photo-1563246598-8b3c2c4e95a3?w=300&q=80', sortOrder: 5 },
-    create: { name: 'Reçel & Marmelat', slug: 'recel-marmelat', image: 'https://images.unsplash.com/photo-1563246598-8b3c2c4e95a3?w=300&q=80', description: 'Ev yapımı doğal reçel ve marmelatlar', sortOrder: 5 },
-  })
-  const zeytinler = await prisma.category.upsert({
-    where: { slug: 'zeytin-zeytinyagi' },
-    update: { name: 'Zeytin & Zeytinyağı', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&q=80', sortOrder: 6 },
-    create: { name: 'Zeytin & Zeytinyağı', slug: 'zeytin-zeytinyagi', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&q=80', description: 'Soğuk sıkım zeytinyağı ve salamura zeytin çeşitleri', sortOrder: 6 },
-  })
-
-  // Alt kategoriler
-  await prisma.category.createMany({
-    skipDuplicates: true,
-    data: [
-      { parentId: balPekmez.id,   name: 'Çiçek Balı',       slug: 'cicek-bali',        sortOrder: 1 },
-      { parentId: balPekmez.id,   name: 'Çam Balı',          slug: 'cam-bali',          sortOrder: 2 },
-      { parentId: balPekmez.id,   name: 'Üzüm Pekmezi',      slug: 'uzum-pekmezi',      sortOrder: 3 },
-      { parentId: balPekmez.id,   name: 'Dut Pekmezi',       slug: 'dut-pekmezi',       sortOrder: 4 },
-      { parentId: peynirler.id,   name: 'Beyaz Peynir',      slug: 'beyaz-peynir',      sortOrder: 1 },
-      { parentId: peynirler.id,   name: 'Tulum Peyniri',     slug: 'tulum-peyniri',     sortOrder: 2 },
-      { parentId: peynirler.id,   name: 'Kaşar Peyniri',     slug: 'kasar-peyniri',     sortOrder: 3 },
-      { parentId: tereyagi.id,    name: 'Köy Tereyağı',      slug: 'koy-tereyagi',      sortOrder: 1 },
-      { parentId: tereyagi.id,    name: 'Kaymak',            slug: 'kaymak',            sortOrder: 2 },
-      { parentId: dogalUrunler.id,name: 'Tahin & Helva',     slug: 'tahin-helva',       sortOrder: 1 },
-      { parentId: dogalUrunler.id,name: 'Kurutulmuş Sebze',  slug: 'kurutulmus-sebze',  sortOrder: 2 },
-      { parentId: zeytinler.id,   name: 'Soğuk Sıkım Yağ',  slug: 'soguk-sikim-yag',   sortOrder: 1 },
-      { parentId: zeytinler.id,   name: 'Salamura Zeytin',   slug: 'salamura-zeytin',   sortOrder: 2 },
-    ],
-  })
-  console.log('✅ Kategoriler')
-
-  // ============================================
-  // ÜRÜNLER
-  // ============================================
-  type ProductData = {
-    categoryId: string
-    name: string
-    slug: string
-    sku: string
-    shortDescription: string
-    description: string
-    price: number
-    comparePrice?: number
-    stock: number
-    weight: number
-    isActive: boolean
-    isFeatured: boolean
-    images: string[]
+  // ─── Yardımcı ────────────────────────────────────────────
+  type Variation = { name: string; price: number; comparePrice?: number; isDefault?: boolean; sortOrder?: number }
+  type ProductInput = {
+    categoryId: string; name: string; slug: string
+    shortDescription?: string; description?: string
+    price: number; comparePrice?: number; stock?: number; weight?: number
+    isFeatured?: boolean; images: string[]; variations?: Variation[]
   }
 
-  const products: ProductData[] = [
-    // BAL & PEKMEZ
-    {
-      categoryId: balPekmez.id,
-      name: 'Organik Çiçek Balı 850g',
-      slug: 'organik-cicek-bali-850g',
-      sku: 'BAL-001',
-      shortDescription: 'Doğu Anadolu yaylalarından toplanan, soğuk sıkım organik çiçek balı',
-      description: 'Doğu Anadolu\'nun el değmemiş yaylalarından toplanan organik çiçek balımız, tamamen doğal ve katkısızdır. Isıl işlem uygulanmaz, ham olarak kavanoza doldurulur. Zengin enzim ve mineral içeriğiyle bağışıklık sistemini güçlendirir.',
-      price: 420, comparePrice: 480, stock: 85, weight: 1.0, isActive: true, isFeatured: true,
-      images: ['https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&q=80'],
-    },
-    {
-      categoryId: balPekmez.id,
-      name: 'Çam Balı 460g',
-      slug: 'cam-bali-460g',
-      sku: 'BAL-002',
-      shortDescription: 'Ege çam ormanlarından toplanan, koyu renkli, yoğun aromalı çam balı',
-      description: 'Ege\'nin kadim çam ormanlarından özenle toplanan çam balımız, koyu rengi ve yoğun aromasıyla sofranızı taçlandırır. Antioksidan açısından zengindir.',
-      price: 360, comparePrice: 420, stock: 60, weight: 0.6, isActive: true, isFeatured: true,
-      images: ['https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=600&q=80'],
-    },
-    {
-      categoryId: balPekmez.id,
-      name: 'Üzüm Pekmezi 1kg',
-      slug: 'uzum-pekmezi-1kg',
-      sku: 'PKM-001',
-      shortDescription: 'Geleneksel taş kazanlarda kaynatılan, şekersiz doğal üzüm pekmezi',
-      description: 'Manisa\'nın verimli bağlarından devşirilen üzümlerden, geleneksel taş kazanlarda hiçbir katkı maddesi eklenmeden elde edilen doğal pekmezimiz.',
-      price: 185, comparePrice: 210, stock: 120, weight: 1.1, isActive: true, isFeatured: false,
-      images: ['https://images.unsplash.com/photo-1502741126161-b048400d085d?w=600&q=80'],
-    },
-    {
-      categoryId: balPekmez.id,
-      name: 'Dut Pekmezi 700g',
-      slug: 'dut-pekmezi-700g',
-      sku: 'PKM-002',
-      shortDescription: 'Güneydoğu Anadolu\'dan doğal siyah dut pekmezi',
-      description: 'Güneydoğu Anadolu\'da yetişen siyah dutlardan elde edilen bu pekmez, zengin demir ve vitamin içeriğiyle öne çıkar.',
-      price: 165, stock: 90, weight: 0.8, isActive: true, isFeatured: false,
-      images: ['https://images.unsplash.com/photo-1563246598-8b3c2c4e95a3?w=600&q=80'],
-    },
-    {
-      categoryId: balPekmez.id,
-      name: 'Keçiboynuzu Pekmezi 700g',
-      slug: 'keciboynuzu-pekmezi-700g',
-      sku: 'PKM-003',
-      shortDescription: 'Güçlü antioksidan keçiboynuzu pekmezi',
-      description: 'Toros Dağları eteklerinden toplanan keçiboynuzlarından elde edilen, doğal şeker içeriği yüksek geleneksel pekmez.',
-      price: 195, comparePrice: 230, stock: 70, weight: 0.8, isActive: true, isFeatured: true,
-      images: ['https://images.unsplash.com/photo-1499638673689-79a0b5115d87?w=600&q=80'],
-    },
-
-    // PEYNİRLER
-    {
-      categoryId: peynirler.id,
-      name: 'Ezine Beyaz Peynir 500g',
-      slug: 'ezine-beyaz-peynir-500g',
-      sku: 'PYN-001',
-      shortDescription: 'Coğrafi işaretli Ezine beyaz peyniri, koyun-keçi sütü',
-      description: 'Çanakkale Ezine\'nin meşhur koyun ve keçi sütünden geleneksel yöntemlerle üretilen, coğrafi işaretli beyaz peynir. Lezzeti ve dokusuyla sofranızın vazgeçilmezi.',
-      price: 285, comparePrice: 320, stock: 45, weight: 0.55, isActive: true, isFeatured: true,
-      images: ['https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=600&q=80'],
-    },
-    {
-      categoryId: peynirler.id,
-      name: 'Tulum Peyniri 500g',
-      slug: 'tulum-peyniri-500g',
-      sku: 'PYN-002',
-      shortDescription: 'Erzincan tulum peyniri, koyun sütünden olgunlaştırılmış',
-      description: 'Erzincan\'ın saf yaylalarında otlayan koyunların sütünden üretilen tulum peyniri, geleneksel deri tulumda 6 ay olgunlaştırılır. Keskin ve derin tadıyla öne çıkar.',
-      price: 340, comparePrice: 390, stock: 35, weight: 0.55, isActive: true, isFeatured: true,
-      images: ['https://images.unsplash.com/photo-1452195100486-9cc805987862?w=600&q=80'],
-    },
-    {
-      categoryId: peynirler.id,
-      name: 'Kaşar Peyniri 500g',
-      slug: 'kasar-peyniri-500g',
-      sku: 'PYN-003',
-      shortDescription: 'Olgunlaştırılmış doğal kaşar peyniri, inek sütünden',
-      description: 'Doğu Anadolu meraları inek sütünden üretilen, en az 3 ay olgunlaştırılmış geleneksel kaşar peyniri.',
-      price: 245, stock: 60, weight: 0.55, isActive: true, isFeatured: false,
-      images: ['https://images.unsplash.com/photo-1625938144755-652e08e359b7?w=600&q=80'],
-    },
-    {
-      categoryId: peynirler.id,
-      name: 'Lor Peyniri 400g',
-      slug: 'lor-peyniri-400g',
-      sku: 'PYN-004',
-      shortDescription: 'Taze köy loru, koyun sütünden',
-      description: 'Koyun sütünden elde edilen taze lor peyniri. Yumurtalı börek, mantı ve tatlılarda kullanım için idealdir.',
-      price: 155, stock: 40, weight: 0.45, isActive: true, isFeatured: false,
-      images: ['https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=600&q=80'],
-    },
-
-    // TEREYAĞI
-    {
-      categoryId: tereyagi.id,
-      name: 'Köy Tereyağı 500g',
-      slug: 'koy-tereyagi-500g',
-      sku: 'TRY-001',
-      shortDescription: 'Taze yayıklanmış, tuzsuz köy tereyağı — sarı renk, güçlü aroma',
-      description: 'Doğu Anadolu yaylalarında otlayan ineklerin sütünden, geleneksel yayık yöntemiyle elde edilen köy tereyağı. Tuzsuz, katkısız ve doğal. Rengi yaz aylarında daha yoğun sarı olur.',
-      price: 395, comparePrice: 450, stock: 50, weight: 0.55, isActive: true, isFeatured: true,
-      images: ['https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=600&q=80'],
-    },
-    {
-      categoryId: tereyagi.id,
-      name: 'Tuzlu Köy Tereyağı 500g',
-      slug: 'tuzlu-koy-tereyagi-500g',
-      sku: 'TRY-002',
-      shortDescription: 'Az tuzlu köy tereyağı, ekmek & poğaça için ideal',
-      description: 'Yayık tereyağına hafif doğal kaya tuzu eklenerek hazırlanır. Kahvaltı sofrasının vazgeçilmezi.',
-      price: 405, comparePrice: 460, stock: 45, weight: 0.55, isActive: true, isFeatured: false,
-      images: ['https://images.unsplash.com/photo-1553909489-cd47e0907980?w=600&q=80'],
-    },
-    {
-      categoryId: tereyagi.id,
-      name: 'Süzme Kaymak 300g',
-      slug: 'suzme-kaymak-300g',
-      sku: 'KYM-001',
-      shortDescription: 'Geleneksel yöntemle hazırlanan tam yağlı süzme kaymak',
-      description: 'Süt yüzeyindeki en yoğun kremadan elde edilen, geleneksel yöntemlerle hazırlanan kaymak. Bal ile birlikte kahvaltıda veya tatlıların üzerinde servis edilir.',
-      price: 175, comparePrice: 200, stock: 30, weight: 0.35, isActive: true, isFeatured: true,
-      images: ['https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=600&q=80'],
-    },
-
-    // DOĞAL ÜRÜNLER
-    {
-      categoryId: dogalUrunler.id,
-      name: 'Susam Tahin 650g',
-      slug: 'susam-tahin-650g',
-      sku: 'THN-001',
-      shortDescription: 'Tam buğday unlu, soğuk sıkım %100 susam tahin',
-      description: 'Urfa\'nın ünlü susam tarlalarından gelen kabuğu soyulmuş susam tanelerinden, soğuk sıkım yöntemiyle elde edilen tahin. Pürüzsüz kıvamı ve yoğun aromasıyla öne çıkar.',
-      price: 225, comparePrice: 260, stock: 95, weight: 0.7, isActive: true, isFeatured: true,
-      images: ['https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=600&q=80'],
-    },
-    {
-      categoryId: dogalUrunler.id,
-      name: 'Sade Helva 500g',
-      slug: 'sade-helva-500g',
-      sku: 'HLV-001',
-      shortDescription: 'Geleneksel tahin helvası, içli ve ufalanan doku',
-      description: 'Kaliteli tahin ve şekerden hazırlanan geleneksel helva. Ufalanan dokusu ve zengin susam aromasıyla çay yanında ideal.',
-      price: 185, stock: 70, weight: 0.55, isActive: true, isFeatured: false,
-      images: ['https://images.unsplash.com/photo-1589881133595-a3c085cb731d?w=600&q=80'],
-    },
-    {
-      categoryId: dogalUrunler.id,
-      name: 'Kurutulmuş Domates 250g',
-      slug: 'kurutulmus-domates-250g',
-      sku: 'KRT-001',
-      shortDescription: 'Güneşte kurutulmuş, yağlı İtalyan tipi kurutulmuş domates',
-      description: 'Ege\'nin bereketli topraklarında yetişen, güneşte doğal yöntemle kurutulan domatesler. Zeytinyağı ile tatlandırılmış, makarna ve salatalarda kullanım için idealdir.',
-      price: 125, comparePrice: 145, stock: 110, weight: 0.28, isActive: true, isFeatured: false,
-      images: ['https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80'],
-    },
-
-    // REÇEL & MARMELAT
-    {
-      categoryId: receller.id,
-      name: 'Çilek Reçeli 380g',
-      slug: 'cilek-receli-380g',
-      sku: 'RCL-001',
-      shortDescription: 'Ev yapımı, az şekerli doğal çilek reçeli',
-      description: 'Manisa\'nın taze çileklerinden, az şekerle hazırlanan ev reçeli. Meyve dokusu korunur, katkı maddesi içermez.',
-      price: 135, comparePrice: 155, stock: 75, weight: 0.43, isActive: true, isFeatured: true,
-      images: ['https://images.unsplash.com/photo-1563246598-8b3c2c4e95a3?w=600&q=80'],
-    },
-    {
-      categoryId: receller.id,
-      name: 'Kayısı Reçeli 380g',
-      slug: 'kayisi-receli-380g',
-      sku: 'RCL-002',
-      shortDescription: 'Malatya kayısısından ev yapımı doğal reçel',
-      description: 'Dünyanın en lezzetli kayısılarından biri olan Malatya kayısısından yapılan bu reçel, yoğun meyve tadıyla sofranıza ayrı bir keyif katar.',
-      price: 145, stock: 65, weight: 0.43, isActive: true, isFeatured: false,
-      images: ['https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?w=600&q=80'],
-    },
-    {
-      categoryId: receller.id,
-      name: 'İncir Reçeli 380g',
-      slug: 'incir-receli-380g',
-      sku: 'RCL-003',
-      shortDescription: 'Aydın incirinden geleneksel yöntemle hazırlanan reçel',
-      description: 'Aydın\'ın meşhur siyah incirlerinden hazırlanan bu reçel, eşsiz aromasıyla peynirle birlikte mükemmel bir ikili oluşturur.',
-      price: 155, comparePrice: 175, stock: 50, weight: 0.43, isActive: true, isFeatured: true,
-      images: ['https://images.unsplash.com/photo-1499638673689-79a0b5115d87?w=600&q=80'],
-    },
-
-    // ZEYTİN & ZEYTİNYAĞI
-    {
-      categoryId: zeytinler.id,
-      name: 'Soğuk Sıkım Zeytinyağı 1lt',
-      slug: 'soguk-sikim-zeytinyagi-1lt',
-      sku: 'ZYT-001',
-      shortDescription: 'Erken hasat, sızma zeytinyağı — 0,3 asit',
-      description: 'Ayvalık\'ın ünlü memecik zeytinlerinden, erken hasatta soğuk sıkım yöntemiyle elde edilen naturel sızma zeytinyağı. 0,3 asit oranıyla mükemmel kalite. Salata ve zeytinyağlı yemekler için idealdir.',
-      price: 495, comparePrice: 560, stock: 55, weight: 1.1, isActive: true, isFeatured: true,
-      images: ['https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&q=80'],
-    },
-    {
-      categoryId: zeytinler.id,
-      name: 'Siyah Salamura Zeytin 500g',
-      slug: 'siyah-salamura-zeytin-500g',
-      sku: 'ZYT-002',
-      shortDescription: 'Gemlik zeytini, geleneksel salamura yöntemiyle',
-      description: 'Bursa Gemlik\'in dünyaca ünlü siyah zeytinleri. Geleneksel salamura tekniğiyle hazırlanmış, yumuşak etli ve yoğun aromalı.',
-      price: 175, comparePrice: 200, stock: 80, weight: 0.55, isActive: true, isFeatured: false,
-      images: ['https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=600&q=80'],
-    },
-    {
-      categoryId: zeytinler.id,
-      name: 'Yeşil Kırma Zeytin 500g',
-      slug: 'yesil-kirma-zeytin-500g',
-      sku: 'ZYT-003',
-      shortDescription: 'Ayvalık kırma yeşil zeytin, baharatlı',
-      description: 'Ayvalık\'ın tanesiz yeşil zeytinleri kırma yöntemiyle hazırlanmış, kekik ve sarımsak ile tatlandırılmıştır.',
-      price: 165, stock: 75, weight: 0.55, isActive: true, isFeatured: false,
-      images: ['https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80'],
-    },
-  ]
-
-  for (const p of products) {
-    const { images, ...productData } = p
-    const existing = await prisma.product.findUnique({ where: { slug: productData.slug } })
-    if (!existing) {
-      const created = await prisma.product.create({ data: productData })
-      if (images.length > 0) {
-        await prisma.productImage.createMany({
-          data: images.map((img, i) => ({ productId: created.id, imagePath: img, sortOrder: i, isPrimary: i === 0, altText: productData.name })),
+  async function createProduct(data: ProductInput) {
+    const hasVariations = !!(data.variations && data.variations.length > 0)
+    const product = await prisma.product.create({
+      data: {
+        categoryId: data.categoryId, name: data.name, slug: data.slug,
+        shortDescription: data.shortDescription, description: data.description,
+        price: data.price, comparePrice: data.comparePrice,
+        stock: hasVariations ? 0 : (data.stock ?? 199),
+        weight: data.weight, hasVariations, isFeatured: data.isFeatured ?? false,
+        isActive: true, lowStockThreshold: 5,
+      },
+    })
+    for (let i = 0; i < data.images.length; i++) {
+      await prisma.productImage.create({
+        data: { productId: product.id, imagePath: data.images[i], isPrimary: i === 0, sortOrder: i },
+      })
+    }
+    if (hasVariations && data.variations) {
+      for (let i = 0; i < data.variations.length; i++) {
+        const v = data.variations[i]
+        await prisma.productVariation.create({
+          data: {
+            productId: product.id, name: v.name, price: v.price, comparePrice: v.comparePrice,
+            stock: 199, isDefault: v.isDefault ?? i === 0, sortOrder: v.sortOrder ?? i,
+          },
         })
       }
     }
-  }
-  console.log('✅ Ürünler (', products.length, ')')
-
-  // ============================================
-  // BANNERLAR
-  // ============================================
-  const bannerCount = await prisma.banner.count()
-  if (bannerCount === 0) {
-    await prisma.banner.createMany({
-      data: [
-        {
-          title: 'Doğal Ürünler Kampanyası',
-          imageDesktop: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&q=80',
-          imageMobile:  'https://images.unsplash.com/photo-1542838132-92c53300491e?w=750&q=80',
-          link: '/urunler',
-          sortOrder: 1,
-          isActive: true,
-        },
-        {
-          title: 'Bal & Pekmez Çeşitleri',
-          imageDesktop: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=1920&q=80',
-          imageMobile:  'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=750&q=80',
-          link: '/kategori/bal-pekmez',
-          sortOrder: 2,
-          isActive: true,
-        },
-        {
-          title: 'Taze Peynir & Tereyağı',
-          imageDesktop: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1920&q=80',
-          imageMobile:  'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=750&q=80',
-          link: '/kategori/peynirler',
-          sortOrder: 3,
-          isActive: true,
-        },
-      ],
-    })
-    console.log('✅ Bannerlar')
-  } else {
-    console.log('⏭️  Bannerlar zaten mevcut, atlandı')
+    return product
   }
 
-  console.log('\n🎉 Seed tamamlandı!')
-  console.log('📧 Admin: admin@site.com')
-  console.log('🔑 Şifre: admin123')
+  // ═══════════════════════════════════════════════════════════
+  //  PEYNİRLER
+  // ═══════════════════════════════════════════════════════════
+  console.log('🧀 Peynirler...')
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Göbek Kaşar', slug: 'gobek-kasar',
+    shortDescription: 'Tam yağlı inek sütünden üretilmiş, yuvarlak formu ve yumuşak iç dokusuyla özel kaşar peyniri.',
+    description: `<h2>Doğallık ve Lezzetin Buluştuğu Göbek Kaşarı</h2><p>Göbek kaşarı, peynir severlerin ilk tercihi olmaya aday, tam yağlı inek sütünden üretilmiş özel bir kaşar peyniridir. Yuvarlak şekli ve daha yumuşak iç dokusuyla, klasik kaşar peynirlerinden ayrılan bu ürün, farkını hemen hissettirir.</p><h2>Göbek Kaşarın Kullanım Kolaylığı</h2><p>Bu özel peynir, yuvarlak formu sayesinde dilimlemek ve istenilen ölçüde kullanmak oldukça kolaydır. Göbek kaşarı, tostlardan pizzalara, makarnalardan salatalara kadar geniş bir yelpazede kullanılabilir. Eşsiz dokusu, yemeğinizi daha lezzetli hale getirirken, tam yağlı içeriğiyle üstün bir kremamsı tat sunar.</p><h2>Ustalıkla Hazırlanmış Bir Peynir</h2><p>Göbek kaşarı, üretim sürecinde özel yöntemlerle olgunlaştırılmış ve inek sütü ile mükemmel bir uyum yakalamıştır. Uzman üreticilerin ellerinden çıkan Göbek kaşarı, doğal lezzeti ve besleyici özellikleri ile peynir tutkunları için vazgeçilmez bir seçenektir.</p>`,
+    price: 419.99, comparePrice: 439.99, weight: 1.5, isFeatured: true,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/09/gorsel_2025-11-01_125346790.png', 'http://atesoglusut.com/wp-content/uploads/2025/09/Gobek-Kasar-1.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Yağlı Çeçil', slug: 'yagli-cecil',
+    shortDescription: 'Yağlı çeçil peyniri, geleneksel yöntemlerle üretilen, damak tadınıza uygun eşsiz bir peynir çeşididir.',
+    description: `<p>En çok tüketilen peynir türlerinden biridir. Klasik yöntem olan suda haşlanarak yapılır. Görünümü iplik şeklindedir ve rengi kaşar peynirine benzer.</p><p>Tam yağlı, yumuşak ve tuzlu bir peynirdir. El ile çekildiğinde kolaylıkla liflerine ayrılır. Doğanın sütlü, narin ve doygun lezzetli özel tarifidir.</p>`,
+    price: 450, comparePrice: 499.99, weight: 1,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/09/gorsel_2025-11-01_124737410.png', 'http://atesoglusut.com/wp-content/uploads/2025/09/gorsel_2025-10-03_010533624.png', 'http://atesoglusut.com/wp-content/uploads/2025/09/Yagli-Cecil.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Obruk Peyniri', slug: 'obruk-peyniri',
+    shortDescription: 'Geleneksel yöntemlerle hazırlanan, kendine özgü aromasıyla Obruk peyniri.',
+    price: 699.99, weight: 1,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/09/Obruk-Peyniri.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Ardahan Damal Çökeleği', slug: 'ardahan-damal-cokele-i',
+    shortDescription: 'Doğal yöntemlerle üretilen Ardahan yaylalarından çökelek.',
+    description: `<p>Doğal yöntemlerle üretilen Damal çökeleği, Ardahan'ın yüksek rakımlı yaylalarında beslenen hayvanların sütünden elde edilir. Yoğurdun süzülmesiyle hazırlanan bu yöresel lezzet, yoğun kıvamı ve hafif ekşimsi tadıyla kahvaltılarda, börek içlerinde ve salatalarda sıkça tercih edilir. Katkısız, besleyici ve tamamen yerel üretimdir.</p>`,
+    price: 449.99, comparePrice: 599.99, weight: 1,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/09/gorsel_2025-11-01_124424473.png', 'http://atesoglusut.com/wp-content/uploads/2025/09/Cokelek.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Çörek Otlu Peynir', slug: 'corek-otlu-peynir',
+    shortDescription: 'Çörek otunun aromatik lezzetiyle zenginleştirilmiş, doğal ve taze peynir.',
+    description: `<h2>Doğallık ve Tazelik Bir Arada</h2><p>Çörek otlu peynir, eşsiz aromasıyla sofralarınıza doğal bir lezzet getiriyor. Tamamen taze, doğal malzemelerle üretilen bu peynir, özellikle kahvaltılarınıza ayrı bir tat katmak için ideal.</p><h2>Lezzet ve Aroma Dengesi</h2><p>Çörek otunun kendine has yoğun aromasıyla peynirin yumuşak ve zengin dokusu mükemmel bir uyumla birleşiyor.</p><h2>Kullanım Alanları</h2><p>Kahvaltı masasında sade haliyle tüketebilirsiniz ya da farklı tariflere ekleyerek yemeklerinize özel bir dokunuş katabilirsiniz. Ürünümüz tamamen doğal içeriklerden yapıldığı için sağlıklı yaşam tarzınızı destekler.</p>`,
+    price: 199.99, weight: 0.5,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/09/Corek-otlu-peynir.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Erzincan Tulum Peyniri', slug: 'erzincan-tulum-peyniri',
+    shortDescription: 'Munzur Yaylalarının "Akkaraman" koyunlarından, şirden mayasıyla geleneksel yöntemlerle üretilen %100 doğal tulum peyniri.',
+    description: `<p>Kekik kokulu Munzur Yaylalarının doğal ortamında beslenen "Akkaraman" ırkı koyunların organik sütü, şirden mayası ve tuz dışında hiçbir madde kullanılmadan geleneksel yöntemlerle, <strong>modern tesisimizde üretilmektedir. %100 doğal, sağlıklı ve lezzetlidir.</strong></p>`,
+    price: 749.99, comparePrice: 799.99, weight: 1, isFeatured: true,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_124233356.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/DSC05911-scaled.jpg'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Ateşoğlu Kaşar (1.8Kg)', slug: 'atesoglu-kasar-1-8kg',
+    shortDescription: 'Ardahan Göle yaylalarından elde edilen sütlerden, modern fabrikada olgunlaştırılmış tam yağlı taze kaşar.',
+    description: `<p>Ardahan ili Göle ilçesinde yaz mevsiminde ve mera hayvancılığının yapıldığı bölgede doğal şekilde elde edilen sütlerin, son teknoloji ile üretim yapmakta olan fabrikamızda peynire dönüşmekte ve olgunlaştırmaya bırakılmaktadır.</p><p><strong>TAM YAĞLI bir üründür.</strong></p><p>1997'den bugüne doğal süt ürünlerinde Türkiye'nin aranan markası olan Ateşoğlu Taze Kaşar ürününü incelemektesiniz. Ardahan Göle'nin yaylalarından elde edilen ürünlerimiz tamamen sağlıklı koşullarda üretilmektedir.</p>`,
+    price: 779.99, comparePrice: 839.99, weight: 1.8,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_125106630.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/DSC05811-scaled.jpg'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Ateşoğlu Eski Kaşar', slug: 'atesoglu-eski-kasar',
+    shortDescription: 'Ardahan Göle yaylalarından elde edilen sütlerden, uzun süre olgunlaştırılmış eski kaşar.',
+    description: `<p>Ardahan ili Göle ilçesinde yaz mevsiminde mera hayvancılığının yapıldığı bölgede doğal şekilde elde edilen sütlerin, son teknoloji ile fabrikamızda peynire dönüşmekte ve olgunlaştırmaya bırakılmaktadır.</p><p><strong>TAM YAĞLI bir üründür.</strong></p>`,
+    price: 449, comparePrice: 490, weight: 1,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_131002491.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_011946085.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Ateşoğlu Eski Kaşar (12.5-13Kg)', slug: 'atesoglu-eski-kasar-buyuk',
+    shortDescription: 'Toplu alım için ideal, 12.5-13Kg büyük boy Ateşoğlu Eski Kaşar.',
+    price: 5699.99, comparePrice: 5850, weight: 13,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_130204796.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/DSC05851-scaled.jpg'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Kars Köy Peyniri Az Tuzlu Tam Yağlı', slug: 'kars-koy-peyniri',
+    shortDescription: 'Kars\'ta 1768m rakımda yayla ineklerinin sütünden, şirden mayalı, 3-4 ay salamurada dinlendirilmiş köy peyniri.',
+    description: `<p>Kars peyniri içinde en sade lezzete sahip olan peynirdir. Çiğ sütün peynir mayası katılarak yapılan bu peynir süt mayalandıktan sonra küçük kalıplara ayrılır. 3-4 ay tuzlu suda bekletilerek daha sağlıklı bir hale getirilir.</p><ul><li><strong>Taze peynir olduğu için tuzlu değil. Peynir erimesin diye tuzlu su ile salamura yapılıyor.</strong></li><li><strong>Öncelikle tam yağlı köy peynirimiz daha doğal, daha sağlıklı, daha hijyenik ve taptaze.</strong></li><li><strong>Bizim peyniri yağda kızartabilir, tost yapabilir hatta pizza da kullanabilirsiniz.</strong></li></ul>`,
+    price: 399.99, comparePrice: 439.99, weight: 1,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_131446635.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_012036718.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Konya Tulum Peyniri', slug: 'konya-tulum-peyniri',
+    shortDescription: 'Konya\'nın eşsiz yaylalarından inek sütüyle, geleneksel yöntemlerle doğal ortamda olgunlaştırılan tulum peyniri.',
+    description: `<p><strong>Konya Tulum Peyniri – Doğallığın ve Lezzetin Buluştuğu Nokta</strong></p><p>Konya'nın eşsiz yaylalarından gelen inek sütü ile hazırlanan Konya Tulum Peyniri, kendine has yoğun aroması ve kıvamıyla sofralarınıza gerçek bir lezzet şöleni sunar. Geleneksel yöntemlerle, doğal ortamda olgunlaştırılan bu peynir, hem kahvaltılarınızda hem de yemeklerinizde eşsiz bir tat bırakır.</p><ul><li><strong>Doğal ve katkısız:</strong> Hiçbir koruyucu veya yapay aroma içermez.</li><li><strong>Zengin lezzet:</strong> Tulumda uzun süre olgunlaşarak yoğun ve karakteristik bir aroma kazanır.</li><li><strong>Çok yönlü kullanım:</strong> Kahvaltılardan mezeye, böreklerden salatalara kadar her tarifte harika bir tat.</li></ul>`,
+    price: 299.99, comparePrice: 349.99, weight: 1,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_131253443.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_012141891.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Blok Kaşar', slug: 'blok-kasar',
+    shortDescription: 'Taze inek sütünden, haşlanıp soğuk depoda 2-3 ay dinlendirilerek üretilen, katkısız blok kaşar.',
+    description: `<p>Taze inek sütü filtrelendikten sonra belirli sıcaklıklara kadar ısıtılır ve sonrasında mayalanır. Daha sonra bir iki gün acı suyunu atması için dinlendirilir. Acı suyunu attıktan sonra haşlanır ve yuvarlak kalıplara doldurulur, kurutulduktan sonra soğuk hava depolarında iki üç ay bekletilir.</p><p><strong>Bu işlemlerin tamamı hijyenik ortamlarda yapılır. Ve hiçbir katkı maddesi kullanılmaz.</strong></p>`,
+    price: 419.99, comparePrice: 450, weight: 1,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_130131055.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_012234860.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Trakya Tam Yağlı Beyaz Peynir', slug: 'trakya-beyaz-peynir',
+    shortDescription: 'Trakya\'nın en bilinen inek sütü peyniri; minimum 6 ay tenekede olgunlaştırılmış, sert ve parlak yapılı.',
+    description: `<p>Trakya'nın en iyi bilinen peyniridir. İnek sütünden üretilir ve kendine has bir tada sahiptir. <strong>Sert ve parlak bir yapısı vardır.</strong></p><p>Minimum 6 ay soğuk odalarda olgunlaştırılır. Olgunlaştırılma işlemi tenekelerde gerçekleşmektedir. <strong>Doğanın sütlü, vazgeçilmez klasik tarifidir.</strong></p>`,
+    price: 429.99, comparePrice: 500, weight: 0.75,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_123919344.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_012356868.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Kars Gravyer Peyniri', slug: 'kars-gravyer-peyniri',
+    shortDescription: '"Peynirlerin Kralı" Kars Gravyeri; İsviçre usulü, yağlı sütten 8-9 ay olgunlaştırılmış.',
+    description: `<p>Peynirlerin kralı olarak da bilinen Gravyer Peyniri 1800'lü yıllarda İsviçrelilerin Kafkasya Bölgesine geldiklerinde Zavot adı verilen sığır türünün sütünden yapmış oldukları bir peynir çeşididir.</p><p>Kars gravyer peyniri Emmental Peyniri ile Gruyere Peyniri tadları arası bir tada sahiptir. <strong>Kars gravyeri yağlı sütten yapılmaktadır, dolayısı ile besin değeri yüksek bir peynirdir.</strong></p><p>Gravyer peyniri imalatından 8-9 ay sonra tüketilebilir. Şarap mezesi olarak tüketilmek istenirse en az 12 ay beklemiş olması gerekmektedir. Raf ömrü ise toplam 36 aydır.</p>`,
+    price: 999.99, comparePrice: 1099.99, weight: 1, isFeatured: true,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_123617869.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/Gravyer-kucuk.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Kars Göğermiş Çeçil Peyniri', slug: 'kars-gogermis-cecil-peyniri',
+    shortDescription: 'Soğuk havada 7 ay olgunlaşan Kars küflü peyniri; doğal probiyotik, bağışıklık güçlendirici.',
+    description: `<p>Taze civil peyniri tuzlandıktan sonra bir gün acı suyunu atması için dinlendirilir. Daha sonra lor peyniri ile karıştırılarak tahta kaplara doldurulur ve soğuk hava depolarında yedi ay kadar bekletildikten sonra tüketime hazır hale gelir.</p><p><strong>Bu işlemlerin tamamı hijyenik ortamlarda yapılır. Ve hiçbir katkı maddesi kullanılmaz.</strong></p><p>Kars Göğermiş Peyniri, peynir yapısındaki küften dolayı vücutta penisilinin üstlendiği işlevi yerine getirmektedir. <strong>Mineral bakımından zengin olan Kars küflü peyniri özellikle içeriğinde bulunan kalsiyum sebebiyle kemik ve diş sağlığını korumada oldukça etkindir.</strong></p>`,
+    price: 374.99, comparePrice: 420, weight: 1,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_130712928.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_012711167.png'],
+  })
+
+  await createProduct({
+    categoryId: catPeynir.id, name: 'Kars Taze Çeçil Peyniri', slug: 'kars-taze-cecil-peyniri',
+    shortDescription: 'Haşlanıp el ile tel tel çekilerek örülen, salamurada katkısız taze çeçil peyniri.',
+    description: `<p>Taze inek sütü filtrelendikten sonra belirli sıcaklıklara kadar ısıtılır ve sonrasında mayalanır. Acı suyunu attıktan sonra haşlanır ve el ile çekilerek tel tel olması sağlanır. Sonrasında örülür ve tuzlanarak salamura edilir.</p><p><strong>Bu işlemlerin tamamı hijyenik ortamlarda yapılır. Ve hiçbir katkı maddesi kullanılmaz.</strong></p>`,
+    price: 349.99, comparePrice: 400, weight: 1,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_012818656.png'],
+  })
+
+  // ═══════════════════════════════════════════════════════════
+  //  BAL & PEKMEZ
+  // ═══════════════════════════════════════════════════════════
+  console.log('🍯 Bal & Pekmez...')
+
+  await createProduct({
+    categoryId: catBal.id, name: 'Ardahan Petek Çiçek Balı', slug: 'ardahan-petek-cicek-bali',
+    shortDescription: 'Kafkas arılarının Kars/Ardahan\'ın bin bir çiçeğinden ürettiği, petek halinde doğal çiçek balı.',
+    description: `<p>Kars/Ardahan balı, Kars'ın kendi coğrafyasına has bin bir çeşit bitki çiçeklerinin özütünden Kafkas arılarının yaptığı bir baldır.</p><p>Bu arının temel özelliği dil uzunluğudur. Dili 7.2 mm olan Kafkas arısı, diğer arılardan 3mm daha fazla olan dili sayesinde derin tüplü çiçeklerin nektarlarından da faydalandığından Kars balına eşsiz lezzetini vermektedir.</p><p>Kars balının diğer bir özelliği de kristalize olması ve krema şeklinde olmasıdır. Beyaz ile amber renginde olur. Boğazı yakmaz.</p>`,
+    price: 1199.99, weight: 2, isFeatured: true,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/09/gorsel_2025-11-01_125545760.png', 'http://atesoglusut.com/wp-content/uploads/2025/09/Petek-Bal.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_005955598.png'],
+    variations: [
+      { name: '2Kg', price: 1199.99, isDefault: true, sortOrder: 0 },
+      { name: '3Kg', price: 1799.99, sortOrder: 1 },
+      { name: '4Kg', price: 2399.99, sortOrder: 2 },
+    ],
+  })
+
+  await createProduct({
+    categoryId: catBal.id, name: 'Karakovan Balı', slug: 'karakovan-bali',
+    shortDescription: 'Kafkas arılarının doğal kovanlarında ürettiği, kristalize amber renkli Ardahan/Kars karakovan balı.',
+    description: `<p><strong>Kars/Ardahan balı, Kars'ın kendi coğrafyasına has bin bir çeşit bitki çiçeklerinin özütünden Kafkas arılarının yaptığı bir baldır.</strong></p><p>Kafkas ırkı arı sadece Kars yöresinde bulunur ve Kars balına lezzetini Kafkas arısı verir. Kars balının diğer bir özelliği de kristalize olması ve krema şeklinde olmasıdır. Beyaz ile amber renginde olur. Boğazı yakmaz.</p>`,
+    price: 2599.99, weight: 2, isFeatured: true,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_125815162.png', 'http://atesoglusut.com/wp-content/uploads/2025/09/Petek-Bal.png'],
+    variations: [
+      { name: '2kg', price: 2599.99, isDefault: true, sortOrder: 0 },
+      { name: '3kg', price: 3899.99, sortOrder: 1 },
+    ],
+  })
+
+  await createProduct({
+    categoryId: catBal.id, name: 'Ateşoğlu Ardahan Süzme Çiçek Balı', slug: 'atesoglu-ardahan-suzme-cicek-bali',
+    shortDescription: '2100 rakımlı yaylalarda 1400+ çiçek türüyle Kafkas arılarının ürettiği organik süzme çiçek balı.',
+    description: `<p><strong>Çiçek Balımızı diğer ballardan ayıran en büyük özellik 2.100 rakımlı yaylalarımızda bulunan 1.400'den fazla çiçek türüyle kaplı bitki florasıdır.</strong></p><p>Ardahan Balı tamamen organiktir ve Kafkas Arı ırkı tarafından üretilmektedir. Bitkilerin çiçeklerinde bulunan nektar kafkas arıları tarafından toplanır ve petek gözlerinde depolanarak olgunlaştırılır.</p><p>Balda şimdiye kadar 12 değişik enzim olduğu saptanmıştır. İnsan vücudunu etkileyen birçok mikroorganizma balda yok olur.</p>`,
+    price: 1099.99, comparePrice: 1200, weight: 3.5,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_125440137.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_010117554.png'],
+  })
+
+  await createProduct({
+    categoryId: catBal.id, name: 'İspir Dut Pekmezi (1.4Kg)', slug: 'ispir-dut-pekmezi',
+    shortDescription: 'Taze ağaç dutundan hiçbir katkı maddesi eklenmeden, odun ateşinde kaynatılıp güneşte kıvama getirilen gerçek dut pekmezi.',
+    description: `<p>Taze olarak ağaçtan toplanan dutlar ayıklandıktan sonra genişçe bir kazana boşaltılır. Hiç bir ilave yapılmadan kazan odun ateşi üzerine bırakılır. Tamamen kendi suyuyla kaynayan dutun suyu alınır.</p><p>Elde edilen dut suyu iyice süzülerek yeniden farklı bir kazanda odun ateşinde kaynatılmaya başlanır. Son olarak büyük tavalarda üç dört gün boyunca güneşte bekletilerek kıvamını alması sağlanır. <strong>Bu işlemler esnasında hiçbir şekilde şeker ilavesi yapılmaz.</strong></p>`,
+    price: 429.99, comparePrice: 470, weight: 1.4,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/09/gorsel_2025-11-01_125955510.png', 'http://atesoglusut.com/wp-content/uploads/2025/09/Dut-Pekmezi-1.png'],
+  })
+
+  await createProduct({
+    categoryId: catBal.id, name: 'Erzurum Ballı Keçi Boynuzu Özü Pekmezi', slug: 'keciboynuzu-pekmezi',
+    shortDescription: 'Şifa kaynağı, C vitamini ve antioksidan deposu keçiboynuzu pekmezi (harnup pekmezi).',
+    description: `<h2>Keçi Boynuzunun Doğal ve Besleyici Özellikleri</h2><p>Keçi boynuzu, doğanın bize sunduğu mucizevi bir lezzettir. Besleyici yapısıyla hem sağlığınızı destekler hem de damak zevkiniz için mükemmel bir seçenek oluşturur. Zengin vitamin ve mineral içeriği sayesinde günlük enerji ihtiyacınızı karşılamaya yardımcı olur.</p><h2>Sağlıklı Atıştırmalıklar İçin Mükemmel Bir Alternatif</h2><p>Doğal şekeri sayesinde tatlı krizlerinizi kontrol altına alabilirsiniz. Gluten içermediğinden, gluten hassasiyeti olan bireyler için de mükemmel bir seçenektir.</p>`,
+    price: 349.99, comparePrice: 400, weight: 0.8,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/09/gorsel_2025-11-01_124035897.png', 'http://atesoglusut.com/wp-content/uploads/2025/09/Keci-boynuzu.png'],
+  })
+
+  await createProduct({
+    categoryId: catBal.id, name: 'Durmuşoğulları Üzüm Pekmezi', slug: 'uzum-pekmezi',
+    shortDescription: 'Geleneksel yöntemlerle üretilen, doğal üzüm pekmezi.',
+    price: 299.99, weight: 0.8,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_124547533.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-19-at-18.20.14.jpeg'],
+  })
+
+  // ═══════════════════════════════════════════════════════════
+  //  TEREYAĞI
+  // ═══════════════════════════════════════════════════════════
+  console.log('🧈 Tereyağı...')
+
+  await createProduct({
+    categoryId: catTereyag.id, name: 'Ardahan Tereyağı', slug: 'ardahan-tereyagi',
+    shortDescription: 'Nisan-Mayıs kır çiçeklerinin bol olduğu dönemde, Ardahan yaylalarının doğal sütünden yapılan, katkısız organik tereyağı.',
+    description: `<p>Kars tereyağı doğal kaynaklar ile tamamen organik şekilde üretilmektedir.</p><p>Genel olarak en kaliteli ve verimli tereyağı nisan ve mayıs ayları gibi yapılmaktadır. Bu dönemde kır çiçekleri daha fazladır ve bu çiçeklerle beslenen ineklerin sütlerinden elde edilen tereyağı daha sarı renkte olmaktadır.</p><p>Doğal Ardahan tereyağı yapmak için taze olan inek sütü filtrelenerek kaymağı üzerinden alınır. Bu kaymak yaklaşık iki gün boyunca dinlenmeye bırakılır ve daha sonra yayıklarda kıvam alıncaya kadar yayılır. <strong>İçerisine hiçbir katkı maddesi ilave edilmeyen Ardahan tereyağı sağlık koşullarına uygun ortamlarda üretilmektedir.</strong></p>`,
+    price: 574.99, isFeatured: true,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/09/gorsel_2025-11-01_125004971.png', 'http://atesoglusut.com/wp-content/uploads/2025/09/tereyag.png'],
+    variations: [
+      { name: '1Kg',  price: 574.99,                isDefault: true, sortOrder: 0 },
+      { name: '2Kg',  price: 1149.99,               sortOrder: 1 },
+      { name: '5Kg',  price: 2800,  comparePrice: 2900,  sortOrder: 2 },
+      { name: '10Kg', price: 5750,  comparePrice: 6000,  sortOrder: 3 },
+      { name: '20Kg', price: 11500, comparePrice: 11750, sortOrder: 4 },
+    ],
+  })
+
+  await createProduct({
+    categoryId: catTereyag.id, name: 'Eritilmiş Ardahan Tereyağı', slug: 'eritilmis-ardahan-tereyagi',
+    shortDescription: 'Tereyağından su ve yağsız maddeler uzaklaştırılarak elde edilen %99 saf süt yağı; 200-240°C dayanıklı.',
+    description: `<p>Sade yağ tuzsuz tereyağından, su ve yağsız kuru maddeler uzaklaştırılarak elde ediliyor. Sonunda ise %99 oranında süt yağı barındıran sade yağ ortaya çıkıyor. 1 kg'lık tereyağından ortalama 900 gram sade yağ çıkıyor.</p><p>Tereyağı bir tencereye alınıp kısık ateşte eritilir. Köpükler alınır ve yağ sık dokulu bezden geçirilir. Donması beklenir.</p><p><strong>200-240 derece sıcağa kadar dayanıklıdır. Buzdolabında 1 yıl durabilecek kadar dayanıklıdır.</strong></p>`,
+    price: 649.99, comparePrice: 699.99, weight: 1,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/09/gorsel_2025-11-01_124814503.png', 'http://atesoglusut.com/wp-content/uploads/2025/09/Erilitmis-Tereyag.png', 'http://atesoglusut.com/wp-content/uploads/2025/09/gorsel_2025-10-03_011037161.png'],
+  })
+
+  // ═══════════════════════════════════════════════════════════
+  //  DOĞAL ÜRÜNLER
+  // ═══════════════════════════════════════════════════════════
+  console.log('🌿 Doğal Ürünler...')
+
+  await createProduct({
+    categoryId: catDogal.id, name: 'Cevizli Sucuk', slug: 'cevizli-sucuk',
+    shortDescription: 'Üzüm pekmezi ve cevizle geleneksel yöntemlerle hazırlanan, katkısız doğal tatlı.',
+    description: `<h2>Doğal ve Geleneksel Lezzet: Cevizli Sucuk</h2><p>Cevizli sucuk, geleneksel Türk mutfağından günümüze taşınmış doğal ve sağlıklı bir tatlı atıştırmalıktır. Üzüm pekmezi ve ceviz gibi tamamen doğal malzemelerle hazırlanan bu enfes lezzet, damaklarda eşsiz bir tat bırakır. Katkı maddesi içermeyen yapısı sayesinde hem sağlıklı beslenmek isteyenlerin hem de geleneksel tatlardan vazgeçemeyenlerin favorisi olmaya adaydır.</p><h2>Cevizle Gelen Besleyicilik</h2><p>Cevizli sucukta kullanılan taze cevizler, zengin omega-3 yağ asitleri, antioksidanlar ve çeşitli vitaminlerle doludur.</p>`,
+    price: 349.99, comparePrice: 379.99, weight: 0.5,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/09/Cevizli-Sucuk.png'],
+  })
+
+  await createProduct({
+    categoryId: catDogal.id, name: 'Siyah Erik Kurusu', slug: 'siyah-erik-kurusu',
+    shortDescription: 'Artvin Yusufeli\'nde yetişen eriklerden doğal yöntemlerle kurutulmuş, katkısız enerji ve besin kaynağı.',
+    description: `<p>Artvin, Yusufeli ilçesinde yetişen eriklerden doğal yöntemlerle kurutulup, katkı ve koruyucu madde eklenmeden doğal olarak tüketiciye sunulmuştur. Enerji ve doğal besin kaynağıdır.</p>`,
+    price: 319.99, comparePrice: 350, weight: 0.5,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_005306839.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_005323294.png'],
+  })
+
+  await createProduct({
+    categoryId: catDogal.id, name: 'Çekirdeksiz Siyah Erik Kurusu', slug: 'cekirdeksiz-siyah-erik-kurusu',
+    shortDescription: 'Artvin Yusufeli eriklerinden doğal kurutulmuş, çekirdeksiz, katkısız besin kaynağı.',
+    description: `<p>Artvin, Yusufeli ilçesinde yetişen eriklerden doğal yöntemlerle kurutulup, katkı ve koruyucu madde eklenmeden doğal olarak tüketiciye sunulmuştur. Enerji ve doğal besin kaynağıdır.</p>`,
+    price: 349.99, comparePrice: 370, weight: 0.5,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_005306839.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_005323294.png'],
+  })
+
+  await createProduct({
+    categoryId: catDogal.id, name: 'Kuru Kızılcık', slug: 'kuru-kizilcik',
+    shortDescription: 'Ağustos-Eylül\'de olgun toplanıp kurutulan, C vitamini ve melatonin deposu kızılcık.',
+    description: `<p>Ekşi vişne benzeri özelliklere sahip olan kızılcık genellikle komposto, jöle, reçel ve turta yapımında kullanılmaktadır. Kızılcıkta bol miktarda C vitamini, flavanoid, karotinoid ve müthiş bir antioksidan olan melatonin bulunur.</p>`,
+    price: 279.99, comparePrice: 300, weight: 0.5,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_005410072.png'],
+  })
+
+  await createProduct({
+    categoryId: catDogal.id, name: 'Kuru Kayısı (Aşma)', slug: 'kuru-kayisi-asma',
+    shortDescription: 'Erzurum kayısısı, köylü eliyle açılıp güneşte kurutulmuş; kükürt-istim yok, naturel ve serttir.',
+    description: `<p>Erzurum kayısı kurusu mevsiminde köylü eliyle açılarak güneşte kurutulmuştur. Tamamen doğal olan Erzurum kayısı kurusu ekşimsi tadıyla hoşaflık olarak tüketilmektedir.</p><p>Doğal kayısı kurusu birer birer köylü eliyle açılıp güneşte kurutulmuş olması, herhangi bir kükürt, istim olmaması nedeniyle naturel ve serttir.</p>`,
+    price: 299.99, comparePrice: 350, weight: 0.5,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_005554759.png'],
+  })
+
+  await createProduct({
+    categoryId: catDogal.id, name: 'Kızılcık Ekşisi', slug: 'kizilcik-eksisi',
+    shortDescription: 'Bölgede "kiren ekşisi" olarak bilinen; olgun kızılcığın suyundan kaynatılarak hazırlanan doğal ekşi/şurup.',
+    description: `<p>Kızılcık ekşisi, bölgemizde kiren ekşisi olarak bilinir. <strong>Kızılcıkta bol miktarda C vitamini, flavanoid, karotinoid ve müthiş bir antioksidan olan melatonin bulunur.</strong></p><p>Kızılcık ekşisi, meyvenin suyu ile yapılır. Olgun kızılcıklar tek tek toplanır, ezilerek çıkarılan suyu kaynatılarak elde edilen kızılcık ekşisi marmelat olarak tüketilebildiği gibi, sulandırılarak şurup olarak da içilir.</p>`,
+    price: 599.99, comparePrice: 699.99, weight: 0.7,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_005639367.png'],
+  })
+
+  await createProduct({
+    categoryId: catDogal.id, name: 'Iğdır Dut Kurusu', slug: 'igdir-dut-kurusu',
+    shortDescription: 'İspir dutları güneşte serilerek kurutulan, kuruyemiş gibi ya da hoşaflık olarak tüketilebilir dut kurusu.',
+    description: `<p>Yaz mevsiminde Erzurum'un İspir ilçesinde toplanan dutlar güneş altına serilerek kurutulur. <strong>Kuruyemiş gibi tüketilebilir (cevizle önerilir). Hoşafı yapılıp içilebilir.</strong></p>`,
+    price: 399.99, comparePrice: 450, weight: 0.5,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-10-03_005735750.png'],
+  })
+
+  await createProduct({
+    categoryId: catDogal.id, name: 'Kars Kaz Eti', slug: 'kars-kaz-eti',
+    shortDescription: 'Merada büyütülüp ilk karla tuzlanarak kuru ayazda kurutulan Kars kazı; yeni yıl sofralarının vazgeçilmezi.',
+    description: `<p>İlkbahar mevsiminde meralarda otlatılarak büyütülen kazlar, Kars/Ardahan'da kar yağışlarının başlamasıyla tuzlanıp kuru ayazda kurutulmaya bırakılır. Kazlarımız 2.300 gram ve 3.000 gram arasında değişiklik göstermektedir.</p><p>Menüsünde bulgur pilavı, tandır ekmeği, göğermiş peyniri, kuru kayısı veya kızılcık kompostosu vardır.</p><p>Yeni yıl sofralarının vazgeçilmez trendlerinden biri de kaz yemeğidir. Kalabalık sofraların, özel günlerin vazgeçilmezi olan kaz eti, Ateşoğlusüt aracılığıyla bir sipariş kadar uzağınızda.</p>`,
+    price: 3999.99, weight: 2.5,
+    images: ['http://atesoglusut.com/wp-content/uploads/2025/10/WhatsApp-Gorsel-2025-11-17-saat-19.31.38_ea2d6ddb.jpg', 'http://atesoglusut.com/wp-content/uploads/2025/10/WhatsApp-Gorsel-2025-11-17-saat-19.31.39_dae173f9-1.jpg'],
+  })
+
+  await createProduct({ categoryId: catDogal.id, name: 'Sarı Erik', slug: 'sari-erik', shortDescription: 'Doğal yetiştirilmiş sarı erik.', price: 319.99, weight: 0.5, images: ['http://atesoglusut.com/wp-content/uploads/2025/10/Sari-Erik-1.png'] })
+
+  await createProduct({ categoryId: catDogal.id, name: 'Cevizli Dut Pestili', slug: 'cevizli-dut-pestili', shortDescription: 'Dut şırasına ceviz batırılarak hazırlanan geleneksel pestil.', price: 319.99, weight: 0.3, images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_132727215.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/Cevizli-Dut-Pestili.png'] })
+
+  await createProduct({ categoryId: catDogal.id, name: 'Erik Ekşisi', slug: 'erik-eksisi', shortDescription: 'Doğal yöntemlerle hazırlanan geleneksel erik ekşisi.', price: 349.99, weight: 0.5, images: ['http://atesoglusut.com/wp-content/uploads/2025/10/erik-eksisi-1.png'] })
+
+  await createProduct({ categoryId: catDogal.id, name: 'Sade Dut Pestili', slug: 'sade-dut-pestili', shortDescription: 'Geleneksel yöntemlerle hazırlanan sade dut pestili.', price: 299.99, weight: 0.3, images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_123411096.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/sade-dut-pestili.png'] })
+
+  await createProduct({ categoryId: catDogal.id, name: 'Siyah Special İri Zeytin', slug: 'siyah-special-iri-zeytin', shortDescription: 'Seçme iri taneli, doğal siyah zeytin.', price: 499.99, weight: 1, images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_130831408.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/Siyah-Special-Iri-Zeytin.png'] })
+
+  await createProduct({ categoryId: catDogal.id, name: 'Üçel Helva', slug: 'ucel-helva', shortDescription: 'Geleneksel yöntemlerle hazırlanan doğal Üçel helvası.', price: 379.99, weight: 0.5, images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_131913652.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/DSC05893-scaled.jpg'] })
+
+  await createProduct({ categoryId: catDogal.id, name: 'Kars Kavurması', slug: 'kars-kavurmasi', shortDescription: 'Geleneksel Kars mutfağından, doğal yöntemlerle hazırlanan et kavurması.', price: 1449.99, weight: 1, images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_125248415.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/DSC05880-scaled.jpg'] })
+
+  await createProduct({ categoryId: catDogal.id, name: 'Sucuk', slug: 'sucuk', shortDescription: 'Kars yöresine özgü baharatlarla hazırlanan doğal sucuk.', price: 1250, weight: 0.5, images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_123523247.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/DSC05908-scaled.jpg'] })
+
+  await createProduct({ categoryId: catDogal.id, name: 'Evin Helva', slug: 'evin-helva', shortDescription: 'Ev yapımı tahin helvası.', price: 299.99, weight: 0.5, images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_123737620.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/DSC05896-scaled.jpg'] })
+
+  await createProduct({ categoryId: catDogal.id, name: 'Elma Kurusu', slug: 'elma-kurusu', shortDescription: 'Doğal yöntemlerle güneşte kurutulmuş elma dilimleri.', price: 319.99, weight: 0.25, images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_123159228.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/elma-kurusu.png'] })
+
+  await createProduct({ categoryId: catDogal.id, name: 'Adıyaman Akide Şekeri', slug: 'adiyaman-akide-sekeri', shortDescription: 'Geleneksel yöntemlerle hazırlanan Adıyaman akide şekeri.', price: 129.99, weight: 0.25, images: ['http://atesoglusut.com/wp-content/uploads/2025/10/gorsel_2025-11-01_131046636.png', 'http://atesoglusut.com/wp-content/uploads/2025/10/Akide-Sekeri.png'] })
+
+  console.log('✅ Seed tamamlandı! 4 kategori, 43 ürün (3 varyasyonlu), tüm stoklar 199')
 }
 
 main()
-  .catch(console.error)
+  .catch(e => { console.error(e); process.exit(1) })
   .finally(() => prisma.$disconnect())

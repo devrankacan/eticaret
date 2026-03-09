@@ -96,6 +96,7 @@ model Product {
   stock            Int            @default(0)
   lowStockThreshold Int           @default(5)
   weight           Float?         // KG - kargo için
+  hasVariations    Boolean        @default(false)
   isActive         Boolean        @default(true)
   isFeatured       Boolean        @default(false)
   metaTitle        String?
@@ -106,10 +107,30 @@ model Product {
 
   category         Category       @relation(fields: [categoryId], references: [id])
   images           ProductImage[]
+  variations       ProductVariation[]
   orderItems       OrderItem[]
   cartItems        CartItem[]
   reviews          Review[]
   stockMovements   StockMovement[]
+}
+
+// ============================================
+// ÜRÜN VARYASYONLARI (Ağırlık/Boyut seçenekleri)
+// ============================================
+model ProductVariation {
+  id           String   @id @default(cuid())
+  productId    String
+  name         String   // "1Kg", "2Kg", "500g" vb.
+  price        Float
+  comparePrice Float?
+  stock        Int      @default(199)
+  sortOrder    Int      @default(0)
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  product      Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems    CartItem[]
 }
 
 model ProductImage {
@@ -166,16 +187,18 @@ model Address {
 // SEPET
 // ============================================
 model CartItem {
-  id         String   @id @default(cuid())
-  sessionId  String?  // Misafir kullanıcı
-  userId     String?  // Giriş yapmış kullanıcı
-  productId  String
-  quantity   Int      @default(1)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(cuid())
+  sessionId   String?  // Misafir kullanıcı
+  userId      String?  // Giriş yapmış kullanıcı
+  productId   String
+  variationId String?  // Seçilen varyasyon (opsiyonel)
+  quantity    Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user        User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variation   ProductVariation? @relation(fields: [variationId], references: [id], onDelete: SetNull)
 }
 
 // ============================================
@@ -232,19 +255,20 @@ model Order {
 }
 
 model OrderItem {
-  id           String  @id @default(cuid())
-  orderId      String
-  productId    String?
-  productName  String  // Snapshot
-  productSku   String?
-  productImage String?
-  quantity     Int
-  unitPrice    Float
-  totalPrice   Float
-  createdAt    DateTime @default(now())
+  id            String  @id @default(cuid())
+  orderId       String
+  productId     String?
+  productName   String  // Snapshot
+  productSku    String?
+  productImage  String?
+  variationName String? // Snapshot (örn. "2Kg")
+  quantity      Int
+  unitPrice     Float
+  totalPrice    Float
+  createdAt     DateTime @default(now())
 
-  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 }
 
 model OrderHistory {
