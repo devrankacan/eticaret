@@ -1,13 +1,14 @@
 import { prisma } from '@/lib/prisma'
 import { BannerSlider } from '@/components/product/BannerSlider'
 import { ProductCard } from '@/components/product/ProductCard'
+import { InstagramFeed } from '@/components/InstagramFeed'
 import Image from 'next/image'
 import Link from 'next/link'
 
 async function getData() {
   const now = new Date()
 
-  const [banners, categories, featuredProducts] = await Promise.all([
+  const [banners, categories, featuredProducts, instaSettings] = await Promise.all([
     // Aktif bannerlar
     prisma.banner.findMany({
       where: {
@@ -44,13 +45,22 @@ async function getData() {
       orderBy: { createdAt: 'desc' },
       take: 10,
     }),
+
+    // Instagram ayarları
+    prisma.setting.findMany({
+      where: { key: { in: ['instagram_username', 'instagram_posts'] } },
+    }),
   ])
 
-  return { banners, categories, featuredProducts }
+  const instaMap = Object.fromEntries(instaSettings.map(s => [s.key, s.value ?? '']))
+  let instaPosts: { image: string; link: string }[] = []
+  try { instaPosts = JSON.parse(instaMap.instagram_posts || '[]') } catch {}
+
+  return { banners, categories, featuredProducts, instaUsername: instaMap.instagram_username || '', instaPosts }
 }
 
 export default async function HomePage() {
-  const { banners, categories, featuredProducts } = await getData()
+  const { banners, categories, featuredProducts, instaUsername, instaPosts } = await getData()
 
   return (
     <div className="space-y-3">
@@ -165,6 +175,11 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ====== INSTAGRAM FEED ====== */}
+      {(instaUsername || instaPosts.length > 0) && (
+        <InstagramFeed username={instaUsername} posts={instaPosts} />
       )}
 
     </div>

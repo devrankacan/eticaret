@@ -7,6 +7,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useCart } from '@/components/providers'
 import { LoginPanel } from './LoginPanel'
 import { MobileMenu } from './MobileMenu'
+import { CartPanel } from './CartPanel'
 
 interface Category {
   id: string
@@ -26,6 +27,7 @@ export function Header({ categories, siteName, siteLogo }: HeaderProps) {
   const { cartCount } = useCart()
   const [loginOpen, setLoginOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [cartOpen, setCartOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [scrolled, setScrolled] = useState(false)
 
@@ -78,8 +80,8 @@ export function Header({ categories, siteName, siteLogo }: HeaderProps) {
               </button>
 
               {/* Sepet */}
-              <Link
-                href="/sepet"
+              <button
+                onClick={() => setCartOpen(true)}
                 className="p-2 rounded-lg text-white hover:bg-white/10 transition relative"
                 aria-label="Sepet"
               >
@@ -91,7 +93,7 @@ export function Header({ categories, siteName, siteLogo }: HeaderProps) {
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -144,6 +146,12 @@ export function Header({ categories, siteName, siteLogo }: HeaderProps) {
         isOpen={loginOpen}
         onClose={() => setLoginOpen(false)}
         session={session}
+      />
+
+      {/* Sepet Paneli */}
+      <CartPanel
+        isOpen={cartOpen}
+        onClose={() => setCartOpen(false)}
       />
     </>
   )
