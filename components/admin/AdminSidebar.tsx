@@ -76,7 +76,7 @@ export function AdminSidebar() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 h-full w-64 bg-[#1a2e1a] text-white z-40 flex flex-col
+      <aside className={`fixed left-0 top-0 h-full w-64 bg-[#3d1f08] text-white z-40 flex flex-col
         transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
 
         {/* Logo */}
@@ -148,7 +148,7 @@ export function AdminSidebar() {
       {/* Mobil menü aç butonu */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed top-4 left-4 z-20 lg:hidden bg-[#1a2e1a] text-white p-2.5 rounded-xl shadow-lg"
+        className="fixed top-4 left-4 z-20 lg:hidden bg-[#3d1f08] text-white p-2.5 rounded-xl shadow-lg"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />

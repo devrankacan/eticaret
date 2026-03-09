@@ -14,7 +14,7 @@ export default async function HakkimizdaPage() {
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {/* Banner */}
-        <div className="bg-[#1a2e1a] py-12 px-6 text-center">
+        <div className="bg-[#3d1f08] py-12 px-6 text-center">
           <h1 className="text-3xl font-bold text-white mb-2">Hakkımızda</h1>
           <p className="text-gray-300">{settings.site_name || 'Mağazamız'}</p>
         </div>

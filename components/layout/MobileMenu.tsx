@@ -58,7 +58,7 @@ export function MobileMenu({ isOpen, onClose, categories, session, onLoginClick,
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Başlık */}
-        <div className="bg-[#1a2e1a] text-white px-4 py-4 flex items-center justify-between">
+        <div className="bg-[#3d1f08] text-white px-4 py-4 flex items-center justify-between">
           <span className="font-bold text-lg">Menü</span>
           <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg transition">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

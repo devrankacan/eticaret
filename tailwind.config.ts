@@ -10,19 +10,19 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          50:  '#f0fdf0',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-          DEFAULT: '#16a34a',
+          50:  '#fdf8f3',
+          100: '#f5e9d9',
+          200: '#e8cba8',
+          300: '#d4a574',
+          400: '#be7d40',
+          500: '#9e5c1e',
+          600: '#7a4216',
+          700: '#5c3010',
+          800: '#3d1f08',
+          900: '#2a1505',
+          DEFAULT: '#7a4216',
         },
-        dark: '#1a2e1a',   // Header koyu yeşil
+        dark: '#3d1f08',   // Header koyu kahve
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

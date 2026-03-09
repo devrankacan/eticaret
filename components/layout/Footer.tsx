@@ -11,7 +11,7 @@ interface FooterProps {
 
 export function Footer({ siteName, siteLogo, phone, email, whatsapp }: FooterProps) {
   return (
-    <footer className="bg-[#1a2e1a] text-white mt-8">
+    <footer className="bg-[#3d1f08] text-white mt-8">
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Logo & Hakkında */}

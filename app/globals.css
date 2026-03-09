@@ -5,8 +5,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --primary: #16a34a;
-  --dark: #1a2e1a;
+  --primary: #7a4216;
+  --dark: #3d1f08;
 }
 
 * {
@@ -45,7 +45,7 @@ body {
 }
 
 /* Fiyat rengi */
-.price { color: #16a34a; }
+.price { color: #7a4216; }
 
 /* Slider transition */
 .slider-track {

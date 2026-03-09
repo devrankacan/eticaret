@@ -43,7 +43,7 @@ export function Header({ categories, siteName, siteLogo }: HeaderProps) {
       <header className={`sticky top-0 z-50 bg-white transition-shadow ${scrolled ? 'shadow-md' : 'shadow-sm'}`}>
 
         {/* Üst bar - koyu yeşil */}
-        <div className="bg-[#1a2e1a]">
+        <div className="bg-[#3d1f08]">
           <div className="max-w-7xl mx-auto px-3 h-14 flex items-center justify-between relative">
 
             {/* Hamburger */}
