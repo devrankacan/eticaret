@@ -361,6 +361,21 @@ model PasswordResetToken {
 }
 
 // ============================================
+// KAYIT E-POSTA DOĞRULAMA TOKENLARI
+// ============================================
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  email     String
+  code      String
+  metadata  String    // JSON: { name, phone, hashedPassword }
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
+// ============================================
 // SİTE AYARLARI (Key-Value store)
 // ============================================
 model Setting {

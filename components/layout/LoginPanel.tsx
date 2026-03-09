@@ -16,6 +16,9 @@ export function LoginPanel({ isOpen, onClose, session }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [registerStep, setRegisterStep] = useState<1 | 2>(1)
+  const [pendingEmail, setPendingEmail] = useState('')
+  const [pendingPassword, setPendingPassword] = useState('')
   const panelRef = useRef<HTMLDivElement>(null)
 
   // ESC ile kapat
@@ -50,7 +53,37 @@ export function LoginPanel({ isOpen, onClose, session }: Props) {
     }
   }
 
-  async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
+  async function handleRegisterSendCode(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    const form = new FormData(e.currentTarget)
+    const email = form.get('email') as string
+    const password = form.get('password') as string
+    const res = await fetch('/api/auth/kayit-kodu-gonder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: form.get('name'),
+        email,
+        phone: form.get('phone'),
+        password,
+        passwordConfirm: form.get('passwordConfirm'),
+      }),
+    })
+    const data = await res.json()
+    if (!res.ok) {
+      setError(data.error || 'Kod gönderilemedi.')
+      setLoading(false)
+      return
+    }
+    setPendingEmail(email)
+    setPendingPassword(password)
+    setRegisterStep(2)
+    setLoading(false)
+  }
+
+  async function handleRegisterVerify(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError('')
@@ -58,26 +91,15 @@ export function LoginPanel({ isOpen, onClose, session }: Props) {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: form.get('name'),
-        email: form.get('email'),
-        phone: form.get('phone'),
-        password: form.get('password'),
-        passwordConfirm: form.get('passwordConfirm'),
-      }),
+      body: JSON.stringify({ email: pendingEmail, code: form.get('code') }),
     })
     const data = await res.json()
     if (!res.ok) {
-      setError(data.error || 'Kayıt olunamadı.')
+      setError(data.error || 'Doğrulama başarısız.')
       setLoading(false)
       return
     }
-    // Başarılı kayıt → otomatik giriş
-    await signIn('credentials', {
-      email: form.get('email'),
-      password: form.get('password'),
-      redirect: false,
-    })
+    await signIn('credentials', { email: pendingEmail, password: pendingPassword, redirect: false })
     setLoading(false)
     onClose()
     window.location.reload()
@@ -184,7 +206,7 @@ export function LoginPanel({ isOpen, onClose, session }: Props) {
             {/* Tab */}
             <div className="flex border-b border-gray-200 mb-5">
               <button
-                onClick={() => { setTab('login'); setError('') }}
+                onClick={() => { setTab('login'); setError(''); setRegisterStep(1) }}
                 className={`flex-1 py-2.5 text-sm font-semibold border-b-2 transition ${
                   tab === 'login' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-400'
                 }`}
@@ -192,7 +214,7 @@ export function LoginPanel({ isOpen, onClose, session }: Props) {
                 ÜYE GİRİŞİ
               </button>
               <button
-                onClick={() => { setTab('register'); setError('') }}
+                onClick={() => { setTab('register'); setError(''); setRegisterStep(1) }}
                 className={`flex-1 py-2.5 text-sm font-semibold border-b-2 transition ${
                   tab === 'register' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-400'
                 }`}
@@ -262,9 +284,9 @@ export function LoginPanel({ isOpen, onClose, session }: Props) {
               </form>
             )}
 
-            {/* KAYIT FORMU */}
-            {tab === 'register' && (
-              <form onSubmit={handleRegister} className="space-y-4">
+            {/* KAYIT FORMU - ADIM 1 */}
+            {tab === 'register' && registerStep === 1 && (
+              <form onSubmit={handleRegisterSendCode} className="space-y-4">
                 {[
                   { name: 'name', label: 'Ad Soyad', type: 'text', placeholder: 'Adınızı giriniz', required: true },
                   { name: 'email', label: 'E-Posta', type: 'email', placeholder: 'E-posta adresinizi giriniz', required: true },
@@ -288,7 +310,42 @@ export function LoginPanel({ isOpen, onClose, session }: Props) {
                   disabled={loading}
                   className="w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition"
                 >
-                  {loading ? 'Kayıt yapılıyor...' : 'KAYIT OL'}
+                  {loading ? 'Kod gönderiliyor...' : 'DOĞRULAMA KODU GÖNDER'}
+                </button>
+              </form>
+            )}
+
+            {/* KAYIT FORMU - ADIM 2 */}
+            {tab === 'register' && registerStep === 2 && (
+              <form onSubmit={handleRegisterVerify} className="space-y-4">
+                <div className="p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl text-center">
+                  <strong>{pendingEmail}</strong> adresine 6 haneli doğrulama kodu gönderildi.
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1.5 font-medium">Doğrulama Kodu</label>
+                  <input
+                    name="code"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="123456"
+                    required
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-center tracking-widest text-lg font-bold focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition"
+                >
+                  {loading ? 'Doğrulanıyor...' : 'HESABI OLUŞTUR'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setRegisterStep(1); setError('') }}
+                  className="w-full text-sm text-gray-500 hover:text-gray-700 py-2"
+                >
+                  Geri don
                 </button>
               </form>
             )}
