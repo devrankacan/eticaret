@@ -33,6 +33,8 @@ export default function UrunlerPage() {
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkLoading, setBulkLoading] = useState(false)
   const emptyForm = { name: '', categoryId: '', price: '', comparePrice: '', stock: '0', weight: '', shortDescription: '', isActive: true, isFeatured: false, images: [{ url: '', uploading: false }] }
   const [form, setForm] = useState(emptyForm)
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([])
@@ -45,6 +47,7 @@ export default function UrunlerPage() {
     setTotal(data.total)
     setPages(data.pages)
     setLoading(false)
+    setSelected(new Set())
   }, [page, q])
 
   useEffect(() => { fetchProducts() }, [fetchProducts])
@@ -52,11 +55,7 @@ export default function UrunlerPage() {
     fetch('/api/admin/categories').then(r => r.json()).then(data => setCategories(data.filter((c: any) => !c.parentId || true)))
   }, [])
 
-  const openNew = () => {
-    setForm(emptyForm)
-    setEditId(null)
-    setShowForm(true)
-  }
+  const openNew = () => { setForm(emptyForm); setEditId(null); setShowForm(true) }
 
   const openEdit = async (id: string) => {
     const res = await fetch(`/api/admin/products/${id}`)
@@ -91,6 +90,38 @@ export default function UrunlerPage() {
     fetchProducts()
   }
 
+  // Çoklu seçim
+  const toggleSelect = (id: string) => {
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selected.size === products.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(products.map(p => p.id)))
+    }
+  }
+
+  const bulkAction = async (action: 'delete' | 'duplicate') => {
+    const ids = Array.from(selected)
+    if (action === 'delete') {
+      if (!confirm(`Seçili ${ids.length} ürün silinsin mi?`)) return
+    }
+    setBulkLoading(true)
+    await fetch('/api/admin/products/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ids }),
+    })
+    setBulkLoading(false)
+    fetchProducts()
+  }
+
   const addImageRow = () => setForm(f => ({ ...f, images: [...f.images, { url: '', uploading: false }] }))
   const removeImageRow = (i: number) => setForm(f => ({ ...f, images: f.images.filter((_, idx) => idx !== i) }))
   const setImageUrl = (i: number, url: string) => setForm(f => ({ ...f, images: f.images.map((img, idx) => idx === i ? { ...img, url } : img) }))
@@ -106,6 +137,9 @@ export default function UrunlerPage() {
     }
     reader.readAsDataURL(file)
   }
+
+  const allSelected = products.length > 0 && selected.size === products.length
+  const someSelected = selected.size > 0 && !allSelected
 
   return (
     <div className="p-4 sm:p-6">
@@ -133,6 +167,41 @@ export default function UrunlerPage() {
         />
       </div>
 
+      {/* Toplu işlem çubuğu */}
+      {selected.size > 0 && (
+        <div className="bg-primary-50 border border-primary-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-3 flex-wrap">
+          <span className="text-sm font-medium text-primary-800">{selected.size} ürün seçildi</span>
+          <div className="flex gap-2 ml-auto">
+            <button
+              onClick={() => bulkAction('duplicate')}
+              disabled={bulkLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Çoğalt
+            </button>
+            <button
+              onClick={() => bulkAction('delete')}
+              disabled={bulkLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Sil
+            </button>
+            <button
+              onClick={() => setSelected(new Set())}
+              className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition"
+            >
+              İptal
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Tablo */}
       {loading ? (
         <div className="text-center py-12 text-gray-400">Yükleniyor...</div>
@@ -144,6 +213,15 @@ export default function UrunlerPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-gray-400 border-b bg-gray-50">
+                  <th className="p-4 w-10">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      ref={el => { if (el) el.indeterminate = someSelected }}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 accent-primary-600 cursor-pointer"
+                    />
+                  </th>
                   <th className="p-4 text-left font-semibold">Ürün</th>
                   <th className="p-4 text-left font-semibold">Kategori</th>
                   <th className="p-4 text-right font-semibold">Fiyat</th>
@@ -154,7 +232,15 @@ export default function UrunlerPage() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {products.map(p => (
-                  <tr key={p.id} className="hover:bg-gray-50 transition">
+                  <tr key={p.id} className={`hover:bg-gray-50 transition ${selected.has(p.id) ? 'bg-primary-50' : ''}`}>
+                    <td className="p-4 w-10">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(p.id)}
+                        onChange={() => toggleSelect(p.id)}
+                        className="w-4 h-4 accent-primary-600 cursor-pointer"
+                      />
+                    </td>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
@@ -273,7 +359,6 @@ export default function UrunlerPage() {
                   <div className="space-y-3">
                     {form.images.map((img, i) => (
                       <div key={i} className="flex gap-2">
-                        {/* Önizleme / Yükle alanı */}
                         <div
                           onClick={() => fileInputRefs.current[i]?.click()}
                           className="flex-shrink-0 w-16 h-16 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-primary-400 transition overflow-hidden relative"
@@ -296,7 +381,6 @@ export default function UrunlerPage() {
                           type="file" accept="image/*" className="hidden"
                           onChange={e => handleImageFile(i, e)}
                         />
-                        {/* URL girişi */}
                         <div className="flex-1 flex flex-col gap-1.5">
                           <input
                             className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
