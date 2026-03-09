@@ -103,7 +103,7 @@ export default function AyarlarPage() {
                 {/* Önizleme */}
                 <div
                   onClick={() => logoInputRef.current?.click()}
-                  className="flex-shrink-0 w-36 h-20 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition overflow-hidden"
+                  className="relative flex-shrink-0 w-36 h-20 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition overflow-hidden"
                 >
                   {logoUploading ? (
                     <svg className="w-6 h-6 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
