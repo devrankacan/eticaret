@@ -96,35 +96,21 @@ export function ProductCard({ product, className = '' }: Props) {
           </span>
         )}
 
-        {/* Favori butonu */}
-        <button
-          onClick={e => { e.preventDefault(); toggle(product.id) }}
-          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 shadow flex items-center justify-center hover:scale-110 transition"
-          aria-label={favorited ? 'Favorilerden çıkar' : 'Favorilere ekle'}
-        >
-          <svg className={`w-4 h-4 transition ${favorited ? 'fill-red-500 text-red-500' : 'fill-none text-gray-400'}`} stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-        </button>
-
-        {/* Desktop hover - Sepete Ekle */}
+{/* Desktop hover - Favorilere Ekle */}
         <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          {isOutOfStock ? (
-            <div className="bg-black/75 text-white text-center py-2.5 text-xs font-bold tracking-wider">
-              TÜKENDİ
-            </div>
-          ) : (
-            <button
-              onClick={addToCart}
-              disabled={adding}
-              className="w-full bg-primary-600/90 hover:bg-primary-700 text-white py-2.5 text-xs font-bold flex items-center justify-center gap-1.5 transition"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              {adding ? 'Ekleniyor...' : 'Sepete Ekle'}
-            </button>
-          )}
+          <button
+            onClick={e => { e.preventDefault(); toggle(product.id) }}
+            className={`w-full py-2.5 text-xs font-bold flex items-center justify-center gap-1.5 transition ${
+              favorited
+                ? 'bg-red-500/90 hover:bg-red-600 text-white'
+                : 'bg-white/90 hover:bg-white text-gray-700'
+            }`}
+          >
+            <svg className={`w-4 h-4 ${favorited ? 'fill-white text-white' : 'fill-none text-gray-500'}`} stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            {favorited ? 'Favorilerde' : 'Favorilere Ekle'}
+          </button>
         </div>
       </Link>
 
