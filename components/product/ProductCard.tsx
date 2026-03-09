@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
 import { useCart, useToast } from '@/components/providers'
+import { useFavorites } from '@/hooks/useFavorites'
 
 interface ProductImage {
   id: string
@@ -32,6 +33,8 @@ export function ProductCard({ product, className = '' }: Props) {
   const [adding, setAdding] = useState(false)
   const { refreshCart } = useCart()
   const { addToast } = useToast()
+  const { toggle, isFavorite } = useFavorites()
+  const favorited = isFavorite(product.id)
 
   const image = product.images.find(i => i.isPrimary) ?? product.images[0]
   const isOutOfStock = product.stock <= 0
@@ -92,6 +95,17 @@ export function ProductCard({ product, className = '' }: Props) {
             %{discountPercent}
           </span>
         )}
+
+        {/* Favori butonu */}
+        <button
+          onClick={e => { e.preventDefault(); toggle(product.id) }}
+          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 shadow flex items-center justify-center hover:scale-110 transition"
+          aria-label={favorited ? 'Favorilerden çıkar' : 'Favorilere ekle'}
+        >
+          <svg className={`w-4 h-4 transition ${favorited ? 'fill-red-500 text-red-500' : 'fill-none text-gray-400'}`} stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+        </button>
 
         {/* Desktop hover - Sepete Ekle */}
         <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
