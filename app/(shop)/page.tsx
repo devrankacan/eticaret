@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { prisma } from '@/lib/prisma'
 import { BannerSlider } from '@/components/product/BannerSlider'
 import { ProductCard } from '@/components/product/ProductCard'

@@ -5,7 +5,10 @@ import { getAllSettings } from '@/lib/utils'
 import { getCartCount } from '@/lib/cart'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getAllSettings()
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    return { title: { default: 'Mağaza', template: '%s | Mağaza' }, description: '' }
+  }
+  const settings = await getAllSettings().catch(() => ({} as Record<string, string>))
   return {
     title: { default: settings.site_name || 'Mağaza', template: `%s | ${settings.site_name || 'Mağaza'}` },
     description: settings.meta_description || '',
