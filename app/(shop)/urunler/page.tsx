@@ -36,7 +36,7 @@ export default async function UrunlerPage({ searchParams }: Props) {
 
   const where: any = { isActive: true }
   if (categoryIds) where.categoryId = { in: categoryIds }
-  if (q) where.name = { contains: q, mode: 'insensitive' }
+  if (q) where.name = { contains: q }
 
   const orderBy: any =
     siralama === 'fiyat-artan' ? { price: 'asc' } :

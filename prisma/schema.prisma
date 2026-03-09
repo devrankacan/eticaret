@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -66,7 +66,7 @@ model Category {
   name        String
   slug        String     @unique
   image       String?
-  description String?
+  description String?    @db.Text
   sortOrder   Int        @default(0)
   isActive    Boolean    @default(true)
   createdAt   DateTime   @default(now())
@@ -87,8 +87,8 @@ model Product {
   slug             String         @unique
   sku              String?        @unique
   barcode          String?
-  shortDescription String?
-  description      String?
+  shortDescription String?  @db.Text
+  description      String?  @db.Text
   price            Float
   comparePrice     Float?         // Önceki fiyat (üzeri çizili)
   costPrice        Float?         // Maliyet (sadece admin)
@@ -100,7 +100,7 @@ model Product {
   isActive         Boolean        @default(true)
   isFeatured       Boolean        @default(false)
   metaTitle        String?
-  metaDescription  String?
+  metaDescription  String?  @db.Text
   views            Int            @default(0)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
@@ -243,8 +243,8 @@ model Order {
   bankTransferDate    String?
 
   // Notlar
-  customerNote    String?
-  adminNote       String?
+  customerNote    String?  @db.Text
+  adminNote       String?  @db.Text
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -362,7 +362,7 @@ model Review {
   orderId    String?
   name       String
   rating     Int
-  comment    String?
+  comment    String?  @db.Text
   isApproved Boolean  @default(false)
   createdAt  DateTime @default(now())
 
@@ -391,7 +391,7 @@ model EmailVerificationToken {
   id        String    @id @default(cuid())
   email     String
   code      String
-  metadata  String    // JSON: { name, phone, hashedPassword }
+  metadata  String    @db.Text // JSON: { name, phone, hashedPassword }
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
@@ -405,7 +405,7 @@ model EmailVerificationToken {
 model Setting {
   id        String   @id @default(cuid())
   key       String   @unique
-  value     String?
+  value     String?  @db.Text
   group     String   @default("general")
   updatedAt DateTime @updatedAt
 }
