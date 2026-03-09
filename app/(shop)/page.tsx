@@ -76,9 +76,9 @@ export default async function HomePage() {
       {categories.length > 0 && (
         <div className="bg-white py-4">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="flex gap-4 scroll-x pb-2">
+            <div className="flex gap-4 scroll-x pb-2 lg:grid lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
               {categories.map(cat => (
-                <div key={cat.id} className="flex-shrink-0 w-40 sm:w-48">
+                <div key={cat.id} className="flex-shrink-0 w-40 sm:w-48 lg:w-auto">
                   <Link href={`/kategori/${cat.slug}`}>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 hover:shadow-md transition-shadow text-center">
                       {/* Kategori görseli */}
@@ -147,10 +147,10 @@ export default async function HomePage() {
                 </Link>
               </div>
 
-              {/* Ürünler - yatay kaydırma */}
-              <div className="flex gap-3 scroll-x pb-2">
+              {/* Ürünler - mobilde yatay scroll, masaüstünde grid */}
+              <div className="flex gap-3 scroll-x pb-2 lg:grid lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
                 {cat.products.map(product => (
-                  <div key={product.id} className="flex-shrink-0 w-40 sm:w-48">
+                  <div key={product.id} className="flex-shrink-0 w-40 sm:w-48 lg:w-auto">
                     <ProductCard product={product} />
                   </div>
                 ))}

@@ -13,7 +13,7 @@ interface CartItem {
     name: string
     price: number
     discountedPrice: number | null
-    images: { url: string }[]
+    images: { imagePath: string }[]
   }
 }
 
@@ -130,7 +130,8 @@ export function CartPanel({ isOpen, onClose }: Props) {
             <ul className="divide-y divide-gray-50 px-4 py-2">
               {items.map(item => {
                 const price = item.product.discountedPrice ?? item.product.price
-                const imgUrl = item.product.images[0]?.url
+                const rawPath = item.product.images[0]?.imagePath
+                const imgUrl = rawPath ? (rawPath.startsWith('http') ? rawPath : `/${rawPath}`) : null
                 return (
                   <li key={item.id} className="py-4 flex gap-3">
                     {/* Görsel */}

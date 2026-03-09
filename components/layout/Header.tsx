@@ -46,30 +46,50 @@ export function Header({ categories, siteName, siteLogo }: HeaderProps) {
   return (
     <>
       <header className={`sticky top-0 z-50 bg-white transition-shadow ${scrolled ? 'shadow-md' : 'shadow-sm'} border-b border-gray-100`}>
-        <div className="max-w-7xl mx-auto px-3 h-14 flex items-center justify-between relative">
+        <div className="max-w-7xl mx-auto px-3 h-14 flex items-center relative">
 
-          {/* Hamburger */}
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="p-2 rounded-lg text-[#3d1f08] hover:bg-primary-50 transition"
-            aria-label="Menüyü aç"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          {/* Mobile: Hamburger | Desktop: Logo */}
+          <div className="flex items-center">
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-[#3d1f08] hover:bg-primary-50 transition"
+              aria-label="Menüyü aç"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <Link href="/" className="hidden lg:flex items-center mr-8">
+              {siteLogo ? (
+                <Image src={siteLogo} alt={siteName} width={120} height={40} className="h-10 w-auto object-contain" />
+              ) : (
+                <span className="text-[#3d1f08] font-bold text-xl tracking-wide">{siteName}</span>
+              )}
+            </Link>
+          </div>
 
-          {/* Logo - ortada */}
-          <Link href="/" className="absolute left-1/2 -translate-x-1/2 flex items-center">
+          {/* Mobile: Logo ortada | Desktop: Kategori nav */}
+          <Link href="/" className="lg:hidden absolute left-1/2 -translate-x-1/2 flex items-center">
             {siteLogo ? (
               <Image src={siteLogo} alt={siteName} width={120} height={40} className="h-10 w-auto object-contain" />
             ) : (
               <span className="text-[#3d1f08] font-bold text-xl tracking-wide">{siteName}</span>
             )}
           </Link>
+          <nav className="hidden lg:flex items-center gap-6 flex-1">
+            {categories.slice(0, 7).map(cat => (
+              <Link
+                key={cat.id}
+                href={`/kategori/${cat.slug}`}
+                className="text-sm font-semibold text-[#3d1f08] hover:text-primary-600 transition whitespace-nowrap"
+              >
+                {cat.name}
+              </Link>
+            ))}
+          </nav>
 
           {/* Sağ ikonlar */}
-          <div className="flex items-center gap-0.5">
+          <div className="ml-auto flex items-center gap-0.5">
             {/* Arama */}
             <button
               onClick={() => setSearchOpen(v => !v)}
