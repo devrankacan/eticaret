@@ -45,22 +45,24 @@ export function BannerSlider({ banners }: { banners: Banner[] }) {
               {/* Mobil görsel */}
               {banner.imageMobile && (
                 <Image
-                  src={banner.imageMobile.startsWith('http') ? banner.imageMobile : `/${banner.imageMobile}`}
+                  src={banner.imageMobile.startsWith('data:') || banner.imageMobile.startsWith('http') ? banner.imageMobile : `/${banner.imageMobile}`}
                   alt={banner.title ?? ''}
                   width={800}
                   height={400}
                   className="w-full object-cover sm:hidden"
                   priority
+                  unoptimized={banner.imageMobile.startsWith('data:')}
                 />
               )}
               {/* Desktop görsel */}
               <Image
-                src={banner.imageDesktop.startsWith('http') ? banner.imageDesktop : `/${banner.imageDesktop}`}
+                src={banner.imageDesktop.startsWith('data:') || banner.imageDesktop.startsWith('http') ? banner.imageDesktop : `/${banner.imageDesktop}`}
                 alt={banner.title ?? ''}
                 width={1920}
                 height={600}
                 className={`w-full object-cover max-h-72 sm:max-h-96 lg:max-h-[500px] ${banner.imageMobile ? 'hidden sm:block' : 'block'}`}
                 priority
+                unoptimized={banner.imageDesktop.startsWith('data:')}
               />
             </div>
           )

@@ -70,11 +70,12 @@ export function ProductCard({ product, className = '' }: Props) {
         <div className="aspect-square bg-gray-50 relative overflow-hidden">
           {image ? (
             <Image
-              src={image.imagePath.startsWith('http') ? image.imagePath : `/${image.imagePath}`}
+              src={image.imagePath.startsWith('data:') || image.imagePath.startsWith('http') ? image.imagePath : `/${image.imagePath}`}
               alt={product.name}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 20vw"
+              unoptimized={image.imagePath.startsWith('data:')}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">

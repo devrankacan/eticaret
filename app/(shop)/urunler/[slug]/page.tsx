@@ -248,12 +248,13 @@ function ProductImages({ images, name, discount }: {
     <div className="lg:w-1/2">
       <div className="aspect-square relative overflow-hidden bg-gray-50">
         <Image
-          src={images[0].imagePath.startsWith('http') ? images[0].imagePath : `/${images[0].imagePath}`}
+          src={images[0].imagePath.startsWith('data:') || images[0].imagePath.startsWith('http') ? images[0].imagePath : `/${images[0].imagePath}`}
           alt={name}
           fill
           className="object-cover"
           priority
           sizes="(max-width: 1024px) 100vw, 50vw"
+          unoptimized={images[0].imagePath.startsWith('data:')}
         />
         {discount && (
           <div className="absolute top-3 left-3 bg-red-500 text-white font-bold text-sm px-3 py-1 rounded-full">
@@ -266,11 +267,12 @@ function ProductImages({ images, name, discount }: {
           {images.map((img) => (
             <div key={img.id} className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 border-gray-200">
               <Image
-                src={img.imagePath.startsWith('http') ? img.imagePath : `/${img.imagePath}`}
+                src={img.imagePath.startsWith('data:') || img.imagePath.startsWith('http') ? img.imagePath : `/${img.imagePath}`}
                 alt={name}
                 width={64}
                 height={64}
                 className="w-full h-full object-cover"
+                unoptimized={img.imagePath.startsWith('data:')}
               />
             </div>
           ))}
