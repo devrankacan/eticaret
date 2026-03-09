@@ -48,19 +48,23 @@ async function getData() {
 
     // Instagram ayarları
     prisma.setting.findMany({
-      where: { key: { in: ['instagram_username', 'instagram_posts'] } },
+      where: { key: { in: ['instagram_username', 'instagram_embed_code'] } },
     }),
   ])
 
   const instaMap = Object.fromEntries(instaSettings.map(s => [s.key, s.value ?? '']))
-  let instaPosts: { image: string; link: string }[] = []
-  try { instaPosts = JSON.parse(instaMap.instagram_posts || '[]') } catch {}
 
-  return { banners, categories, featuredProducts, instaUsername: instaMap.instagram_username || '', instaPosts }
+  return {
+    banners,
+    categories,
+    featuredProducts,
+    instaUsername: instaMap.instagram_username || '',
+    instaEmbedCode: instaMap.instagram_embed_code || '',
+  }
 }
 
 export default async function HomePage() {
-  const { banners, categories, featuredProducts, instaUsername, instaPosts } = await getData()
+  const { banners, categories, featuredProducts, instaUsername, instaEmbedCode } = await getData()
 
   return (
     <div className="space-y-3">
@@ -178,8 +182,8 @@ export default async function HomePage() {
       )}
 
       {/* ====== INSTAGRAM FEED ====== */}
-      {(instaUsername || instaPosts.length > 0) && (
-        <InstagramFeed username={instaUsername} posts={instaPosts} />
+      {(instaUsername || instaEmbedCode) && (
+        <InstagramFeed username={instaUsername} embedCode={instaEmbedCode} />
       )}
 
     </div>

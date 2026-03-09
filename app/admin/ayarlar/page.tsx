@@ -19,10 +19,8 @@ interface Settings {
   free_shipping_threshold: string
   min_order_amount: string
   instagram_username: string
-  instagram_posts: string
+  instagram_embed_code: string
 }
-
-interface InstaPost { image: string; link: string }
 
 const defaults: Settings = {
   site_name: '',
@@ -40,7 +38,7 @@ const defaults: Settings = {
   free_shipping_threshold: '',
   min_order_amount: '',
   instagram_username: '',
-  instagram_posts: '[]',
+  instagram_embed_code: '',
 }
 
 export default function AyarlarPage() {
@@ -50,26 +48,6 @@ export default function AyarlarPage() {
   const [saved, setSaved] = useState(false)
   const [logoUploading, setLogoUploading] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
-  const instaInputRefs = useRef<(HTMLInputElement | null)[]>([])
-
-  function getPosts(): InstaPost[] {
-    try { return JSON.parse(settings.instagram_posts || '[]') } catch { return [] }
-  }
-  function setPosts(posts: InstaPost[]) { set('instagram_posts', JSON.stringify(posts)) }
-
-  function addPost() { setPosts([...getPosts(), { image: '', link: '' }]) }
-  function removePost(i: number) { setPosts(getPosts().filter((_, idx) => idx !== i)) }
-  function updatePost(i: number, field: keyof InstaPost, value: string) {
-    const posts = getPosts(); posts[i] = { ...posts[i], [field]: value }; setPosts(posts)
-  }
-  function handlePostImageUpload(e: React.ChangeEvent<HTMLInputElement>, i: number) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 2 * 1024 * 1024) { alert('Görsel 2MB\'den küçük olmalıdır.'); return }
-    const reader = new FileReader()
-    reader.onload = (ev) => updatePost(i, 'image', ev.target?.result as string)
-    reader.readAsDataURL(file)
-  }
 
   function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -253,10 +231,22 @@ export default function AyarlarPage() {
         {/* Instagram */}
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <h2 className="font-bold text-gray-900 mb-1">Instagram Feed</h2>
-          <p className="text-xs text-gray-400 mb-4">Ana sayfada gösterilecek Instagram postları. Görselleri yükleyip post linkini girin.</p>
+
+          {/* Kurulum rehberi */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-sm text-blue-800 space-y-1">
+            <p className="font-semibold">LightWidget ile otomatik feed kurulumu:</p>
+            <ol className="list-decimal list-inside space-y-1 text-xs text-blue-700">
+              <li><a href="https://lightwidget.com" target="_blank" rel="noopener noreferrer" className="underline font-medium">lightwidget.com</a> adresine gidin ve ücretsiz hesap açın</li>
+              <li>Instagram hesabınızı bağlayın</li>
+              <li>Widget tasarımını seçin (Grid / 2 sütun önerilir)</li>
+              <li>&ldquo;Get Code&rdquo; butonuna tıklayın → iframe kodunu kopyalayın</li>
+              <li>Aşağıdaki alana yapıştırın ve Kaydet&rsquo;e basın</li>
+            </ol>
+          </div>
+
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Instagram Kullanıcı Adı</label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Instagram Kullanıcı Adı <span className="text-gray-400 font-normal">(Takip Et butonu için)</span></label>
               <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary-300">
                 <span className="px-3 text-gray-400 text-sm bg-gray-50 border-r border-gray-200 py-2.5">@</span>
                 <input
@@ -268,66 +258,16 @@ export default function AyarlarPage() {
               </div>
             </div>
 
-            {/* Post listesi */}
-            <div className="space-y-3">
-              {getPosts().map((post, i) => (
-                <div key={i} className="border border-gray-200 rounded-xl p-3 flex gap-3 items-start">
-                  {/* Görsel önizleme */}
-                  <div
-                    className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100 cursor-pointer border border-gray-200"
-                    onClick={() => instaInputRefs.current[i]?.click()}
-                  >
-                    {post.image ? (
-                      <Image src={post.image} alt="" fill className="object-cover" unoptimized sizes="64px" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-                        </svg>
-                      </div>
-                    )}
-                    <input
-                      ref={el => { instaInputRefs.current[i] = el }}
-                      type="file" accept="image/*" className="hidden"
-                      onChange={e => handlePostImageUpload(e, i)}
-                    />
-                  </div>
-                  {/* Inputs */}
-                  <div className="flex-1 space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => instaInputRefs.current[i]?.click()}
-                      className="text-xs text-primary-600 font-medium hover:underline"
-                    >
-                      {post.image ? 'Görseli Değiştir' : 'Görsel Yükle'}
-                    </button>
-                    <input
-                      className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary-300"
-                      value={post.link}
-                      onChange={e => updatePost(i, 'link', e.target.value)}
-                      placeholder="https://www.instagram.com/p/... (isteğe bağlı)"
-                    />
-                  </div>
-                  {/* Sil */}
-                  <button onClick={() => removePost(i)} className="p-1 text-gray-300 hover:text-red-500 transition flex-shrink-0">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">LightWidget Embed Kodu</label>
+              <textarea
+                rows={5}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
+                value={settings.instagram_embed_code}
+                onChange={e => set('instagram_embed_code', e.target.value)}
+                placeholder={'<iframe src="//lightwidget.com/widgets/XXXXX.html" scrolling="no" allowtransparency="true" class="lightwidget-widget" style="width:100%;overflow:hidden;height:500px;"></iframe>'}
+              />
             </div>
-
-            <button
-              type="button"
-              onClick={addPost}
-              className="w-full border-2 border-dashed border-gray-200 hover:border-primary-400 text-gray-400 hover:text-primary-600 rounded-xl py-2.5 text-sm font-medium transition flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Post Ekle
-            </button>
           </div>
         </div>
       </div>
