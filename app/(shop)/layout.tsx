@@ -29,6 +29,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
         categories={categories}
         siteName={settings.site_name || 'Mağaza'}
         siteLogo={settings.site_logo || undefined}
+        whatsapp={settings.site_whatsapp || undefined}
       />
       <main className="flex-1">
         {children}
