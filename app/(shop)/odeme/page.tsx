@@ -42,6 +42,11 @@ export default function OdemePage() {
     paymentMethod: 'bank_transfer',
     customerNote: '',
   })
+  const [paymentEnabled, setPaymentEnabled] = useState(false)
+  const [paymentProvider, setPaymentProvider] = useState('')
+  const [iyzicoCfContent, setIyzicoCfContent] = useState('')
+  const [paymentLoading, setPaymentLoading] = useState(false)
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null)
 
   const fetchCart = useCallback(async () => {
     const res = await fetch('/api/cart')
@@ -56,6 +61,16 @@ export default function OdemePage() {
   }, [router])
 
   useEffect(() => { fetchCart() }, [fetchCart])
+
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(r => r.json())
+      .then(data => {
+        setPaymentEnabled(data.payment_enabled === '1')
+        setPaymentProvider(data.payment_provider || '')
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (session?.user?.name) {
@@ -101,7 +116,36 @@ export default function OdemePage() {
     }
 
     await refreshCart()
-    router.push(`/siparis-basarili?no=${data.orderNumber}`)
+
+    // Kredi kartı seçildiyse ödeme sayfasına yönlendir
+    if (form.paymentMethod === 'credit_card' && paymentEnabled) {
+      setCreatedOrderId(data.orderId)
+      setPaymentLoading(true)
+      setSubmitting(false)
+      const payRes = await fetch('/api/payment/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: data.orderId }),
+      })
+      const payData = await payRes.json()
+      setPaymentLoading(false)
+
+      if (!payRes.ok) {
+        setError(payData.error || 'Ödeme başlatılamadı')
+        return
+      }
+
+      if (payData.provider === 'iyzico' && payData.checkoutFormContent) {
+        setIyzicoCfContent(payData.checkoutFormContent)
+        return
+      }
+      if (payData.redirectUrl) {
+        window.location.href = payData.redirectUrl
+        return
+      }
+    }
+
+    router.push(\`/siparis-basarili?no=\${data.orderNumber}\`)
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
