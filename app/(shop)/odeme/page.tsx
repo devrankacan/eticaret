@@ -145,7 +145,7 @@ export default function OdemePage() {
       }
     }
 
-    router.push(\`/siparis-basarili?no=\${data.orderNumber}\`)
+    router.push(`/siparis-basarili?no=${data.orderNumber}`)
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
