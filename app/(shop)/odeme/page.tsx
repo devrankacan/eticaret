@@ -152,6 +152,28 @@ export default function OdemePage() {
   const shippingCost = subtotal >= 500 ? 0 : 39.9
   const total = subtotal + shippingCost - discount
 
+  // iyzico ödeme formu
+  if (iyzicoCfContent) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-10">
+        <div className="text-center mb-6">
+          <h1 className="text-xl font-bold text-gray-900">Güvenli Ödeme</h1>
+          <p className="text-gray-500 text-sm mt-1">Siparişiniz oluşturuldu, ödemenizi tamamlayın</p>
+        </div>
+        <div dangerouslySetInnerHTML={{ __html: iyzicoCfContent }} />
+      </div>
+    )
+  }
+
+  if (paymentLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <div className="animate-spin w-10 h-10 border-2 border-primary-500 border-t-transparent rounded-full mx-auto mb-4" />
+        <p className="text-gray-500">Ödeme sayfasına yönlendiriliyorsunuz...</p>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center text-gray-400">
@@ -251,6 +273,7 @@ export default function OdemePage() {
                 {[
                   { value: 'bank_transfer', label: 'Havale / EFT', desc: 'Banka hesabımıza havale yaparak ödeme yapın', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
                   { value: 'cash_on_delivery', label: 'Kapıda Ödeme', desc: 'Teslimat sırasında nakit veya kart ile ödeyin', icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' },
+                  ...(paymentEnabled ? [{ value: 'credit_card', label: '💳 Kredi / Banka Kartı', desc: 'Güvenli ödeme altyapısı ile hızlı ödeyin', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' }] : []),
                 ].map(opt => (
                   <label
                     key={opt.value}
