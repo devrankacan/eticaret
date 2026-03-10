@@ -83,8 +83,19 @@ export function Footer({ siteName, siteLogo, phone, email, whatsapp }: FooterPro
           </div>
         </div>
 
-        <div className="border-t border-[#e8cba8] mt-8 pt-6 text-center text-gray-400 text-sm">
-          © {new Date().getFullYear()} {siteName}. Tüm hakları saklıdır.
+        <div className="border-t border-[#e8cba8] mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-gray-400 text-sm">
+          <span>© {new Date().getFullYear()} {siteName}. Tüm hakları saklıdır.</span>
+          <span>
+            Created By{' '}
+            <a
+              href="https://devrankacan.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#8b5e3c] hover:text-[#3d1f08] font-medium transition"
+            >
+              Devran Kaçan
+            </a>
+          </span>
         </div>
       </div>
     </footer>
