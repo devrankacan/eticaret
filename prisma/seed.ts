@@ -7,12 +7,20 @@ async function main() {
   console.log('🌱 Seed başlatılıyor...')
 
   // ─── Admin kullanıcı ────────────────────────────────────
-  const hashedPassword = await bcrypt.hash('admin123', 10)
-  await prisma.user.upsert({
-    where: { email: 'admin@site.com' },
-    update: {},
-    create: { email: 'admin@site.com', name: 'Admin', password: hashedPassword, role: 'admin' },
+  const hashedPassword = await bcrypt.hash('Atesoglu.79', 10)
+  const existingAdmin = await prisma.user.findFirst({
+    where: { OR: [{ email: 'admin@site.com' }, { email: 'info@atesoglusut.com' }, { role: 'admin' }] }
   })
+  if (existingAdmin) {
+    await prisma.user.update({
+      where: { id: existingAdmin.id },
+      data: { email: 'info@atesoglusut.com', password: hashedPassword, role: 'admin' }
+    })
+  } else {
+    await prisma.user.create({
+      data: { email: 'info@atesoglusut.com', name: 'Admin', password: hashedPassword, role: 'admin' }
+    })
+  }
 
   // ─── Eski ürün/kategori verilerini temizle ────────────────
   console.log('🗑  Eski veriler temizleniyor...')
