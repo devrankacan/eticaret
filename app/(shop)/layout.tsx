@@ -4,30 +4,43 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { prisma } from '@/lib/prisma'
 import { getAllSettings } from '@/lib/utils'
+import { unstable_cache } from 'next/cache'
 
-async function getCategories() {
-  return prisma.category.findMany({
-    where: { isActive: true, parentId: null },
-    orderBy: { sortOrder: 'asc' },
-    include: {
-      children: {
-        where: { isActive: true },
-        orderBy: { sortOrder: 'asc' },
-        select: { id: true, name: true, slug: true },
+const getCategories = unstable_cache(
+  async () => {
+    return prisma.category.findMany({
+      where: { isActive: true, parentId: null },
+      orderBy: { sortOrder: 'asc' },
+      include: {
+        children: {
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' },
+          select: { id: true, name: true, slug: true },
+        },
       },
-    },
-  }).catch(() => [])
-}
+    }).catch(() => [])
+  },
+  ['nav-categories'],
+  { revalidate: 300 } // 5 dakika
+)
+
+const getNavPages = unstable_cache(
+  async () => {
+    return prisma.page.findMany({
+      where: { isActive: true, showInNav: true },
+      orderBy: { sortOrder: 'asc' },
+      select: { id: true, title: true, slug: true, navLabel: true },
+    }).catch(() => [])
+  },
+  ['nav-pages'],
+  { revalidate: 300 } // 5 dakika
+)
 
 export default async function ShopLayout({ children }: { children: React.ReactNode }) {
   const [categories, settings, navPages] = await Promise.all([
     getCategories(),
     getAllSettings().catch(() => ({} as Record<string, string>)),
-    prisma.page.findMany({
-      where: { isActive: true, showInNav: true },
-      orderBy: { sortOrder: 'asc' },
-      select: { id: true, title: true, slug: true, navLabel: true },
-    }).catch(() => []),
+    getNavPages(),
   ])
 
   let navExtraItems: { label: string; href: string }[] = []
