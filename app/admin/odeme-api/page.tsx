@@ -14,6 +14,19 @@ interface PaymentSettings {
 
 const PROVIDERS = [
   {
+    id: 'halkbank',
+    name: 'Halkbank Sanal POS',
+    logo: '🏛️',
+    desc: 'Halkbank 3D Secure Sanal POS entegrasyonu. Mağaza ID, Kullanıcı Adı ve 3D Store Key ile çalışır.',
+    fields: [
+      { key: 'payment_merchant_id', label: 'Mağaza ID (Client ID)', placeholder: '100000000', type: 'text' },
+      { key: 'payment_api_key', label: 'Kullanıcı Adı', placeholder: 'HBAPI', type: 'text' },
+      { key: 'payment_secret_key', label: '3D Store Key', placeholder: '3D güvenlik anahtarınız', type: 'password' },
+    ],
+    docsUrl: 'https://spos.halkbank.com.tr',
+    modes: true,
+  },
+  {
     id: 'iyzico',
     name: 'iyzico',
     logo: '💳',
