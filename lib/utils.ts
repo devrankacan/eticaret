@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { prisma } from './prisma'
+import { unstable_cache } from 'next/cache'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -26,16 +27,26 @@ export function getCargoTrackingUrl(trackingUrl: string, trackingNumber: string)
   return trackingUrl.replace('{tracking_number}', trackingNumber)
 }
 
-// Site ayarını getir (server-side)
+// Site ayarlarını 5 dakika önbellekte tut (Neon traffic azaltır)
+export const getAllSettings = unstable_cache(
+  async (): Promise<Record<string, string>> => {
+    const settings = await prisma.setting.findMany()
+    return Object.fromEntries(settings.map(s => [s.key, s.value ?? '']))
+  },
+  ['all-settings'],
+  { revalidate: 300 } // 5 dakika
+)
+
+// Tek ayar getir (cache'den)
 export async function getSetting(key: string, defaultValue = ''): Promise<string> {
-  const setting = await prisma.setting.findUnique({ where: { key } })
-  return setting?.value ?? defaultValue
+  const settings = await getAllSettings().catch(() => ({} as Record<string, string>))
+  return settings[key] ?? defaultValue
 }
 
-// Tüm ayarları getir
-export async function getAllSettings(): Promise<Record<string, string>> {
-  const settings = await prisma.setting.findMany()
-  return Object.fromEntries(settings.map(s => [s.key, s.value ?? '']))
+// Ayar önbelleğini temizle (admin panelden ayar kaydedilince çağrılır)
+export async function revalidateSettings() {
+  const { revalidateTag } = await import('next/cache')
+  revalidateTag('all-settings')
 }
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {
