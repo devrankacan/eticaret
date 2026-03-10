@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ['iyzipay'],
   output: 'standalone',
   images: {
     remotePatterns: [
