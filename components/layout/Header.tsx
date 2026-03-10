@@ -16,15 +16,23 @@ interface Category {
   children: { id: string; name: string; slug: string }[]
 }
 
+interface NavPage { id: string; slug: string; title: string; navLabel?: string | null }
+
 interface HeaderProps {
   categories: Category[]
   siteName: string
   siteLogo?: string
   whatsapp?: string
   socialLinks?: { instagram?: string; facebook?: string; youtube?: string }
+  announcementText?: string
+  announcementEnabled?: boolean
+  freeShippingText?: string
+  freeShippingThreshold?: string
+  navPages?: NavPage[]
+  navExtraItems?: { label: string; href: string }[]
 }
 
-export function Header({ categories, siteName, siteLogo, whatsapp, socialLinks }: HeaderProps) {
+export function Header({ categories, siteName, siteLogo, whatsapp, socialLinks, announcementText, announcementEnabled = true, freeShippingText, freeShippingThreshold, navPages = [], navExtraItems = [] }: HeaderProps) {
   const { data: session } = useSession()
   const { cartCount } = useCart()
   const [loginOpen, setLoginOpen] = useState(false)
@@ -75,10 +83,10 @@ export function Header({ categories, siteName, siteLogo, whatsapp, socialLinks }
       <div className={`sticky top-0 z-50 transition-shadow ${scrolled ? 'shadow-md' : 'shadow-sm'}`}>
 
         {/* ══════════════ DUYURU BANDI ══════════════ */}
-        <div className="bg-[#3d1f08] text-white text-xs py-2 px-4">
+        {announcementEnabled !== false && <div className="bg-[#3d1f08] text-white text-xs py-2 px-4">
           <div className="max-w-7xl mx-auto flex items-center">
             <p className="flex-1 text-center">
-              Aynı Gün İçerisinde Kargoların Gönderimi Yapılmaktadır.
+              {announcementText || 'Aynı Gün İçerisinde Kargoların Gönderimi Yapılmaktadır.'}
             </p>
             {/* Desktop: sosyal medya */}
             {(whatsapp || socialLinks?.instagram || socialLinks?.facebook || socialLinks?.youtube) && (
@@ -114,7 +122,7 @@ export function Header({ categories, siteName, siteLogo, whatsapp, socialLinks }
               </div>
             )}
           </div>
-        </div>
+        </div>}
 
         {/* ══════════════ ANA HEADER ══════════════ */}
         <div className="bg-white border-b border-gray-100">
@@ -148,8 +156,8 @@ export function Header({ categories, siteName, siteLogo, whatsapp, socialLinks }
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
               </svg>
               <div className="leading-tight">
-                <p className="font-semibold text-gray-800 text-xs">Ücretsiz Kargo</p>
-                <p className="text-gray-400 text-[11px]">500 TL ve Üzeri Alışverişlerde</p>
+                <p className="font-semibold text-gray-800 text-xs">{freeShippingText || 'Ücretsiz Kargo'}</p>
+                <p className="text-gray-400 text-[11px]">{freeShippingThreshold || '500'} TL ve Üzeri Alışverişlerde</p>
               </div>
             </div>
 
@@ -229,6 +237,24 @@ export function Header({ categories, siteName, siteLogo, whatsapp, socialLinks }
                   className="text-sm font-medium text-[#3d1f08] hover:text-primary-600 transition whitespace-nowrap flex-shrink-0"
                 >
                   {cat.name}
+                </Link>
+              ))}
+              {navExtraItems.map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-sm font-medium text-[#3d1f08] hover:text-primary-600 transition whitespace-nowrap flex-shrink-0"
+                >
+                  {item.label}
+                </Link>
+              ))}
+              {navPages.map(pg => (
+                <Link
+                  key={pg.id}
+                  href={`/sayfa/${pg.slug}`}
+                  className="text-sm font-medium text-[#3d1f08] hover:text-primary-600 transition whitespace-nowrap flex-shrink-0"
+                >
+                  {pg.navLabel || pg.title}
                 </Link>
               ))}
               <Link
