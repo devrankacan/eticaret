@@ -23,7 +23,8 @@
     "react-dom": "^18",
     "sharp": "^0.33.2",
     "slugify": "^1.6.6",
-    "tailwind-merge": "^2.2.1"
+    "tailwind-merge": "^2.2.1",
+    "iyzipay": "^2.0.15"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
