@@ -48,34 +48,57 @@ async function getData() {
       take: 10,
     }),
 
-    // Instagram ayarları
+    // Instagram ve anasayfa ayarları
     prisma.setting.findMany({
-      where: { key: { in: ['instagram_username', 'instagram_embed_code'] } },
+      where: { key: { in: ['instagram_username', 'instagram_embed_code', 'homepage_featured_title', 'homepage_featured_visible', 'homepage_categories_visible', 'homepage_instagram_visible', 'homepage_hero_enabled', 'homepage_hero_title', 'homepage_hero_subtitle', 'homepage_hero_button_text', 'homepage_hero_button_href', 'homepage_hero_bg_color'] } },
     }),
   ])
 
-  const instaMap = Object.fromEntries(instaSettings.map(s => [s.key, s.value ?? '']))
+  const settingMap = Object.fromEntries(instaSettings.map(s => [s.key, s.value ?? '']))
 
   return {
     banners,
     categories,
     featuredProducts,
-    instaUsername: instaMap.instagram_username || '',
-    instaEmbedCode: instaMap.instagram_embed_code || '',
+    instaUsername: settingMap.instagram_username || '',
+    instaEmbedCode: settingMap.instagram_embed_code || '',
+    featuredTitle: settingMap.homepage_featured_title || 'Öne Çıkan Ürünler',
+    showFeatured: settingMap.homepage_featured_visible !== '0',
+    showCategories: settingMap.homepage_categories_visible !== '0',
+    showInstagram: settingMap.homepage_instagram_visible !== '0',
+    heroEnabled: settingMap.homepage_hero_enabled === '1',
+    heroTitle: settingMap.homepage_hero_title || 'Hoş Geldiniz',
+    heroSubtitle: settingMap.homepage_hero_subtitle || '',
+    heroBtnText: settingMap.homepage_hero_button_text || 'Alışverişe Başla',
+    heroBtnHref: settingMap.homepage_hero_button_href || '/urunler',
+    heroBgColor: settingMap.homepage_hero_bg_color || '#3d1f08',
   }
 }
 
 export default async function HomePage() {
-  const { banners, categories, featuredProducts, instaUsername, instaEmbedCode } = await getData()
+  const { banners, categories, featuredProducts, instaUsername, instaEmbedCode, featuredTitle, showFeatured, showCategories, showInstagram, heroEnabled, heroTitle, heroSubtitle, heroBtnText, heroBtnHref, heroBgColor } = await getData()
 
   return (
     <div className="space-y-3">
 
+      {/* ====== HERO BANNER (Admin'den yönetilir) ====== */}
+      {heroEnabled && (
+        <div className="w-full py-16 px-4 flex items-center justify-center" style={{ backgroundColor: heroBgColor }}>
+          <div className="text-center text-white max-w-2xl">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4">{heroTitle}</h1>
+            {heroSubtitle && <p className="text-lg text-white/80 mb-6">{heroSubtitle}</p>}
+            <a href={heroBtnHref} className="inline-block bg-white text-gray-900 font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition">
+              {heroBtnText}
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* ====== BANNER SLİDER ====== */}
       <BannerSlider banners={banners} />
 
-      {/* ====== KATEGORİ KARTLARI - Arifoğlu tarzı yatay scroll ====== */}
-      {categories.length > 0 && (
+      {/* ====== KATEGORİ KARTLARI ====== */}
+      {showCategories && categories.length > 0 && (
         <div className="bg-white py-4">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex gap-4 scroll-x pb-2 lg:grid lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
@@ -163,7 +186,7 @@ export default async function HomePage() {
       })}
 
       {/* ====== ÖNE ÇIKAN ÜRÜNLER ====== */}
-      {featuredProducts.length > 0 && (
+      {showFeatured && featuredProducts.length > 0 && (
         <div className="bg-white py-5">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex items-center gap-2 mb-4">
@@ -171,7 +194,7 @@ export default async function HomePage() {
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
               <h2 className="font-bold text-base sm:text-lg text-gray-900 uppercase">
-                Öne Çıkan Ürünler
+                {featuredTitle}
               </h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
@@ -184,7 +207,7 @@ export default async function HomePage() {
       )}
 
       {/* ====== INSTAGRAM FEED ====== */}
-      {(instaUsername || instaEmbedCode) && (
+      {showInstagram && (instaUsername || instaEmbedCode) && (
         <InstagramFeed username={instaUsername} embedCode={instaEmbedCode} />
       )}
 
