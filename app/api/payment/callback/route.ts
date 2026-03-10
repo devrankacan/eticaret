@@ -64,6 +64,49 @@ export async function POST(req: NextRequest) {
       return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)
     }
 
+    // ── Halkbank Sanal POS 3D Secure Callback ─────────────────────────────
+    if (provider === 'halkbank') {
+      const mdStatus = params.get('mdStatus')
+      const procReturnCode = params.get('ProcReturnCode')
+      const oid = params.get('oid')
+      const authCode = params.get('AuthCode') || ''
+      const response = params.get('Response') || ''
+      const rnd = params.get('rnd') || ''
+      const hashParam = params.get('HASH') || params.get('hash') || ''
+
+      const clientId = settings.payment_merchant_id
+      const storeKey = settings.payment_secret_key
+
+      if (clientId && storeKey && hashParam) {
+        const crypto = require('crypto')
+        const cavv = params.get('cavv') || ''
+        const eci = params.get('eci') || ''
+        const md = params.get('md') || ''
+        const hashStr = clientId + oid + authCode + procReturnCode + response + mdStatus + cavv + eci + md + rnd + storeKey
+        const expectedHash = Buffer.from(
+          crypto.createHash('sha1').update(hashStr, 'utf8').digest()
+        ).toString('base64')
+
+        if (hashParam !== expectedHash) {
+          return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)
+        }
+      }
+
+      if (mdStatus === '1' && procReturnCode === '00' && oid) {
+        await prisma.order.update({
+          where: { orderNumber: oid },
+          data: {
+            paymentStatus: 'paid',
+            paymentRef: authCode,
+            status: 'confirmed',
+          },
+        })
+        return NextResponse.redirect(`${baseUrl}/siparis-basarili?no=${oid}`)
+      }
+
+      return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)
+    }
+
     return new NextResponse('OK', { status: 200 })
   } catch (e: any) {
     console.error('Payment callback error:', e)
