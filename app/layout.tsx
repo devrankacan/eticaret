@@ -1,8 +1,14 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Providers } from '@/components/providers'
 import { getAllSettings } from '@/lib/utils'
 import { getCartCount } from '@/lib/cart'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   if (process.env.NEXT_PHASE === 'phase-production-build') {
@@ -12,7 +18,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { default: settings.site_name || 'Mağaza', template: `%s | ${settings.site_name || 'Mağaza'}` },
     description: settings.meta_description || '',
-    viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
   }
 }
 

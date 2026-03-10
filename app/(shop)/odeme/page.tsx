@@ -42,11 +42,6 @@ export default function OdemePage() {
     paymentMethod: 'bank_transfer',
     customerNote: '',
   })
-  const [paymentEnabled, setPaymentEnabled] = useState(false)
-  const [paymentProvider, setPaymentProvider] = useState('')
-  const [iyzicoCfContent, setIyzicoCfContent] = useState('')
-  const [paymentLoading, setPaymentLoading] = useState(false)
-  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null)
 
   const fetchCart = useCallback(async () => {
     const res = await fetch('/api/cart')
@@ -61,16 +56,6 @@ export default function OdemePage() {
   }, [router])
 
   useEffect(() => { fetchCart() }, [fetchCart])
-
-  useEffect(() => {
-    fetch('/api/admin/settings')
-      .then(r => r.json())
-      .then(data => {
-        setPaymentEnabled(data.payment_enabled === '1')
-        setPaymentProvider(data.payment_provider || '')
-      })
-      .catch(() => {})
-  }, [])
 
   useEffect(() => {
     if (session?.user?.name) {
@@ -116,63 +101,12 @@ export default function OdemePage() {
     }
 
     await refreshCart()
-
-    // Kredi kartı seçildiyse ödeme sayfasına yönlendir
-    if (form.paymentMethod === 'credit_card' && paymentEnabled) {
-      setCreatedOrderId(data.orderId)
-      setPaymentLoading(true)
-      setSubmitting(false)
-      const payRes = await fetch('/api/payment/initialize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: data.orderId }),
-      })
-      const payData = await payRes.json()
-      setPaymentLoading(false)
-
-      if (!payRes.ok) {
-        setError(payData.error || 'Ödeme başlatılamadı')
-        return
-      }
-
-      if (payData.provider === 'iyzico' && payData.checkoutFormContent) {
-        setIyzicoCfContent(payData.checkoutFormContent)
-        return
-      }
-      if (payData.redirectUrl) {
-        window.location.href = payData.redirectUrl
-        return
-      }
-    }
-
     router.push(`/siparis-basarili?no=${data.orderNumber}`)
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
   const shippingCost = subtotal >= 500 ? 0 : 39.9
   const total = subtotal + shippingCost - discount
-
-  // iyzico ödeme formu
-  if (iyzicoCfContent) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-10">
-        <div className="text-center mb-6">
-          <h1 className="text-xl font-bold text-gray-900">Güvenli Ödeme</h1>
-          <p className="text-gray-500 text-sm mt-1">Siparişiniz oluşturuldu, ödemenizi tamamlayın</p>
-        </div>
-        <div dangerouslySetInnerHTML={{ __html: iyzicoCfContent }} />
-      </div>
-    )
-  }
-
-  if (paymentLoading) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <div className="animate-spin w-10 h-10 border-2 border-primary-500 border-t-transparent rounded-full mx-auto mb-4" />
-        <p className="text-gray-500">Ödeme sayfasına yönlendiriliyorsunuz...</p>
-      </div>
-    )
-  }
 
   if (loading) {
     return (
@@ -272,8 +206,8 @@ export default function OdemePage() {
               <div className="space-y-3">
                 {[
                   { value: 'bank_transfer', label: 'Havale / EFT', desc: 'Banka hesabımıza havale yaparak ödeme yapın', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
+                  { value: 'halkbank', label: 'Halk Bankası', desc: 'Halk Bankası hesabımıza EFT/havale yaparak ödeme yapın', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
                   { value: 'cash_on_delivery', label: 'Kapıda Ödeme', desc: 'Teslimat sırasında nakit veya kart ile ödeyin', icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' },
-                  ...(paymentEnabled ? [{ value: 'credit_card', label: '💳 Kredi / Banka Kartı', desc: 'Güvenli ödeme altyapısı ile hızlı ödeyin', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' }] : []),
                 ].map(opt => (
                   <label
                     key={opt.value}
@@ -302,7 +236,7 @@ export default function OdemePage() {
                 ))}
               </div>
 
-              {form.paymentMethod === 'bank_transfer' && (
+              {(form.paymentMethod === 'bank_transfer' || form.paymentMethod === 'halkbank') && (
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                   <p className="text-sm font-semibold text-blue-800 mb-2">Havale Bilgileri</p>
                   <p className="text-xs text-blue-700">Siparişiniz onaylandıktan sonra banka bilgileri e-posta ile gönderilecektir. Açıklama kısmına sipariş numaranızı yazmayı unutmayın.</p>

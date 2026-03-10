@@ -7,9 +7,10 @@ interface FooterProps {
   phone?: string
   email?: string
   whatsapp?: string
+  address?: string
 }
 
-export function Footer({ siteName, siteLogo, phone, email, whatsapp }: FooterProps) {
+export function Footer({ siteName, siteLogo, phone, email, whatsapp, address }: FooterProps) {
   return (
     <footer className="bg-[#fdf8f3] border-t border-[#e8cba8] mt-8">
       <div className="max-w-7xl mx-auto px-4 py-10">
@@ -49,7 +50,6 @@ export function Footer({ siteName, siteLogo, phone, email, whatsapp }: FooterPro
                 { href: '/urunler', label: 'Tüm Ürünler' },
                 { href: '/sepet', label: 'Sepetim' },
                 { href: '/hesabim/siparisler', label: 'Siparişlerim' },
-                { href: '/siparis-takip', label: 'Sipariş Takip' },
               ].map(item => (
                 <li key={item.href}>
                   <Link href={item.href} className="hover:text-[#3d1f08] transition">
@@ -80,23 +80,21 @@ export function Footer({ siteName, siteLogo, phone, email, whatsapp }: FooterPro
                   <a href={`mailto:${email}`} className="hover:text-[#3d1f08] transition">{email}</a>
                 </li>
               )}
+              {address && (
+                <li className="flex items-start gap-2">
+                  <svg className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>{address}</span>
+                </li>
+              )}
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-[#e8cba8] mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-gray-400 text-sm">
-          <span>© {new Date().getFullYear()} {siteName}. Tüm hakları saklıdır.</span>
-          <span>
-            Created By{' '}
-            <a
-              href="https://devrankacan.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#8b5e3c] hover:text-[#3d1f08] font-medium transition"
-            >
-              Devran Kaçan
-            </a>
-          </span>
+        <div className="border-t border-[#e8cba8] mt-8 pt-6 text-center text-gray-400 text-sm">
+          © {new Date().getFullYear()} {siteName}. Tüm hakları saklıdır.
         </div>
       </div>
     </footer>
