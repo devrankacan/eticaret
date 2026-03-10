@@ -48,6 +48,8 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
         email={settings.site_email}
         whatsapp={settings.site_whatsapp}
         address={settings.site_address}
+        footerDescription={settings.footer_description || undefined}
+        footerExtraLinks={(() => { try { const l = JSON.parse(settings.footer_extra_links || '[]'); return Array.isArray(l) ? l : [] } catch { return [] } })()}
       />
       {settings.site_whatsapp && (
         <a
