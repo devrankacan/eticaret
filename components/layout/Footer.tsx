@@ -49,6 +49,7 @@ export function Footer({ siteName, siteLogo, phone, email, whatsapp }: FooterPro
                 { href: '/urunler', label: 'Tüm Ürünler' },
                 { href: '/sepet', label: 'Sepetim' },
                 { href: '/hesabim/siparisler', label: 'Siparişlerim' },
+                { href: '/siparis-takip', label: 'Sipariş Takip' },
               ].map(item => (
                 <li key={item.href}>
                   <Link href={item.href} className="hover:text-[#3d1f08] transition">
