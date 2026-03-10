@@ -105,8 +105,9 @@ export default function OdemePage() {
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-  const shippingCost = subtotal >= 500 ? 0 : 39.9
+  const shippingCost = subtotal >= 3500 ? 0 : 39.9
   const total = subtotal + shippingCost - discount
+  const deliveryDate = (() => { const d = new Date(); d.setDate(d.getDate() + 3); return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' }) })()
 
   if (loading) {
     return (
@@ -340,6 +341,13 @@ export default function OdemePage() {
                   <span>Toplam</span>
                   <span>{total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL</span>
                 </div>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2 text-xs text-green-700 bg-green-50 rounded-xl px-3 py-2.5">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>Tahmini Teslimat: <strong>{deliveryDate}</strong></span>
               </div>
 
               {error && (
