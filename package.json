@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma db push && next build && cp -r .next/static .next/standalone/.next/",
-    "start": "next start -p ${PORT:-3000}",
+    "build": "prisma generate && next build && cp -r .next/static .next/standalone/.next/",
+    "start": "prisma db push && next start -p ${PORT:-3000}",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "migrate": "prisma db push"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^1.6.0",
