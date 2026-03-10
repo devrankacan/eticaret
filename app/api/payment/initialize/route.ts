@@ -114,6 +114,60 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // ── Halkbank Sanal POS 3D Secure ──────────────────────────────────────
+    if (provider === 'halkbank') {
+      const clientId = settings.payment_merchant_id
+      const storeKey = settings.payment_secret_key
+
+      if (!clientId || !storeKey) {
+        return NextResponse.json({ error: 'Halkbank bilgileri eksik' }, { status: 400 })
+      }
+
+      const amount = order.total.toFixed(2)
+      const oid = order.orderNumber
+      const okUrl = callbackUrl
+      const failUrl = callbackUrl
+      const rnd = Date.now().toString()
+      const islemtipi = 'Auth'
+      const taksit = ''
+      const currency = '949'
+
+      const crypto = require('crypto')
+      const hashStr = clientId + oid + amount + okUrl + failUrl + islemtipi + taksit + rnd + storeKey
+      const hash = Buffer.from(
+        crypto.createHash('sha1').update(hashStr, 'utf8').digest()
+      ).toString('base64')
+
+      const gatewayUrl = mode === 'live'
+        ? 'https://spos.halkbank.com.tr/fim/est3Dgate'
+        : 'https://entegrasyon.halkbank.com.tr/fim/est3Dgate'
+
+      const formHtml = `
+        <html><body>
+        <form id="hbForm" method="POST" action="${gatewayUrl}">
+          <input type="hidden" name="clientid" value="${clientId}" />
+          <input type="hidden" name="storetype" value="3d_pay_hosting" />
+          <input type="hidden" name="amount" value="${amount}" />
+          <input type="hidden" name="currency" value="${currency}" />
+          <input type="hidden" name="oid" value="${oid}" />
+          <input type="hidden" name="okUrl" value="${okUrl}" />
+          <input type="hidden" name="failUrl" value="${failUrl}" />
+          <input type="hidden" name="lang" value="tr" />
+          <input type="hidden" name="rnd" value="${rnd}" />
+          <input type="hidden" name="hash" value="${hash}" />
+          <input type="hidden" name="islemtipi" value="${islemtipi}" />
+          <input type="hidden" name="taksit" value="${taksit}" />
+        </form>
+        <script>document.getElementById('hbForm').submit();</script>
+        </body></html>
+      `
+
+      return NextResponse.json({
+        provider: 'halkbank',
+        formHtml,
+      })
+    }
+
     // ── PayTR ─────────────────────────────────────────────────────────────
     if (provider === 'paytr') {
       return NextResponse.json(
