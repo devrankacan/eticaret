@@ -190,6 +190,12 @@ export function CartPanel({ isOpen, onClose }: Props) {
         {/* Alt - Toplam ve buton */}
         {items.length > 0 && (
           <div className="border-t border-gray-100 p-5 space-y-3">
+            <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 rounded-xl px-3 py-2">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>Tahmini Teslimat: <strong>{(() => { const d = new Date(); d.setDate(d.getDate() + 3); return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' }) })()}</strong></span>
+            </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">Toplam</span>
               <span className="text-lg font-bold text-gray-900">

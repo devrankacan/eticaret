@@ -4,15 +4,38 @@ import { prisma } from '@/lib/prisma'
 
 async function getSettings() {
   const settings = await prisma.setting.findMany({
-    where: { key: { in: ['site_name', 'site_phone', 'site_email', 'site_whatsapp', 'site_address', 'social_instagram', 'social_facebook', 'social_youtube'] } }
+    where: {
+      key: {
+        in: [
+          'site_name', 'site_phone', 'site_email', 'site_whatsapp',
+          'site_address', 'social_instagram', 'social_facebook', 'social_youtube',
+          'contact_center_hours', 'contact_branches',
+        ],
+      },
+    },
   })
   const obj: Record<string, string> = {}
   settings.forEach(s => { obj[s.key] = s.value || '' })
   return obj
 }
 
+interface Branch {
+  id: string
+  name: string
+  address: string
+  phone: string
+  hours: string
+}
+
 export default async function IletisimPage() {
   const s = await getSettings()
+
+  let branches: Branch[] = []
+  try {
+    branches = JSON.parse(s.contact_branches || '[]')
+  } catch {
+    branches = []
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
@@ -23,7 +46,9 @@ export default async function IletisimPage() {
         </div>
 
         <div className="p-6 sm:p-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-10">
+
+          {/* İletişim kartları */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
             {s.site_phone && (
               <a href={`tel:${s.site_phone}`} className="flex items-start gap-4 p-5 bg-gray-50 rounded-2xl hover:bg-primary-50 transition group">
                 <div className="w-12 h-12 bg-primary-100 group-hover:bg-primary-200 rounded-xl flex items-center justify-center flex-shrink-0 transition">
@@ -65,26 +90,66 @@ export default async function IletisimPage() {
                 </div>
               </a>
             )}
-
-            {s.site_address && (
-              <div className="flex items-start gap-4 p-5 bg-gray-50 rounded-2xl">
-                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <svg className="w-6 h-6 text-primary-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Adres</p>
-                  <p className="font-medium text-gray-900 whitespace-pre-line">{s.site_address}</p>
-                </div>
-              </div>
-            )}
           </div>
+
+          {/* Merkez + Şubeler */}
+          {(s.site_address || branches.length > 0) && (
+            <div className="border-t border-gray-100 pt-8">
+              <h2 className="font-bold text-gray-900 text-lg mb-5">Adreslerimiz</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                {/* Merkez */}
+                {s.site_address && (
+                  <div className="border border-primary-200 bg-primary-50 rounded-2xl p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </div>
+                      <h3 className="font-bold text-primary-900">Merkez</h3>
+                    </div>
+                    <p className="text-sm text-gray-700 whitespace-pre-line mb-2">{s.site_address}</p>
+                    {s.site_phone && (
+                      <a href={`tel:${s.site_phone}`} className="text-sm text-primary-700 font-medium hover:underline block">
+                        {s.site_phone}
+                      </a>
+                    )}
+                    {s.contact_center_hours && (
+                      <p className="text-xs text-gray-500 mt-1">{s.contact_center_hours}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Şubeler */}
+                {branches.map(branch => (
+                  <div key={branch.id} className="border border-gray-200 bg-gray-50 rounded-2xl p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-bold text-gray-900">{branch.name}</h3>
+                    </div>
+                    <p className="text-sm text-gray-700 whitespace-pre-line mb-2">{branch.address}</p>
+                    {branch.phone && (
+                      <a href={`tel:${branch.phone}`} className="text-sm text-gray-600 font-medium hover:underline block">
+                        {branch.phone}
+                      </a>
+                    )}
+                    {branch.hours && (
+                      <p className="text-xs text-gray-500 mt-1">{branch.hours}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Sosyal Medya */}
           {(s.social_instagram || s.social_facebook || s.social_youtube) && (
-            <div className="pt-6 border-t border-gray-100">
+            <div className="pt-8 border-t border-gray-100 mt-8">
               <h2 className="font-bold text-gray-900 mb-4">Sosyal Medya</h2>
               <div className="flex gap-3">
                 {s.social_instagram && (
@@ -112,8 +177,7 @@ export default async function IletisimPage() {
             </div>
           )}
 
-          {/* Herhangi bir iletişim bilgisi yoksa */}
-          {!s.site_phone && !s.site_email && !s.site_whatsapp && !s.site_address && (
+          {!s.site_phone && !s.site_email && !s.site_whatsapp && !s.site_address && branches.length === 0 && (
             <p className="text-gray-400 text-center py-8">İletişim bilgileri henüz eklenmemiş. Admin panelinden ekleyebilirsiniz.</p>
           )}
         </div>
