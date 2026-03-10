@@ -20,10 +20,18 @@ async function getCategories() {
 }
 
 export default async function ShopLayout({ children }: { children: React.ReactNode }) {
-  const [categories, settings] = await Promise.all([
+  const [categories, settings, navPages] = await Promise.all([
     getCategories(),
     getAllSettings(),
+    prisma.page.findMany({
+      where: { isActive: true, showInNav: true },
+      orderBy: { sortOrder: 'asc' },
+      select: { id: true, title: true, slug: true, navLabel: true },
+    }).catch(() => []),
   ])
+
+  let navExtraItems: { label: string; href: string }[] = []
+  try { navExtraItems = JSON.parse(settings.nav_extra_items || '[]') } catch {}
 
   return (
     <>
@@ -37,6 +45,12 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
           facebook: settings.social_facebook || undefined,
           youtube: settings.social_youtube || undefined,
         }}
+        announcementText={settings.announcement_text || undefined}
+        announcementEnabled={settings.announcement_enabled !== '0'}
+        freeShippingText={settings.free_shipping_text || undefined}
+        freeShippingThreshold={settings.free_shipping_threshold || undefined}
+        navPages={navPages}
+        navExtraItems={navExtraItems}
       />
       <main className="flex-1">
         {children}
