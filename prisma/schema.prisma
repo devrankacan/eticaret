@@ -411,3 +411,22 @@ model Setting {
   group     String   @default("general")
   updatedAt DateTime @updatedAt
 }
+
+// ============================================
+// SAYFALAR (Dinamik İçerik Sayfaları)
+// ============================================
+model Page {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  content         String   @db.Text
+  excerpt         String?  @db.Text
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  isActive        Boolean  @default(true)
+  showInNav       Boolean  @default(false)
+  navLabel        String?
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
