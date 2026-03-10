@@ -17,7 +17,7 @@ const PROVIDERS = [
     id: 'iyzico',
     name: 'iyzico',
     logo: '💳',
-    desc: 'Türkiye'nin en popüler ödeme altyapısı. API Key ve Secret Key ile çalışır.',
+    desc: "Türkiye'nin en popüler ödeme altyapısı. API Key ve Secret Key ile çalışır.",
     fields: [
       { key: 'payment_api_key', label: 'API Key', placeholder: 'sandbox-xxxxx', type: 'text' },
       { key: 'payment_secret_key', label: 'Secret Key', placeholder: 'sandbox-xxxxx', type: 'password' },
