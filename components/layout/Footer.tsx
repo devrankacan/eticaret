@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 
+interface FooterLink { label: string; href: string }
+
 interface FooterProps {
   siteName: string
   siteLogo?: string
@@ -8,9 +10,22 @@ interface FooterProps {
   email?: string
   whatsapp?: string
   address?: string
+  footerDescription?: string
+  footerExtraLinks?: FooterLink[]
 }
 
-export function Footer({ siteName, siteLogo, phone, email, whatsapp, address }: FooterProps) {
+export function Footer({ siteName, siteLogo, phone, email, whatsapp, address, footerDescription, footerExtraLinks }: FooterProps) {
+  const defaultLinks: FooterLink[] = [
+    { href: '/', label: 'Ana Sayfa' },
+    { href: '/urunler', label: 'Tüm Ürünler' },
+    { href: '/sepet', label: 'Sepetim' },
+    { href: '/siparis-takip', label: 'Sipariş Takip' },
+    { href: '/hesabim/siparisler', label: 'Siparişlerim' },
+  ]
+  const quickLinks = footerExtraLinks && footerExtraLinks.length > 0
+    ? [...defaultLinks, ...footerExtraLinks]
+    : defaultLinks
+
   return (
     <footer className="bg-[#fdf8f3] border-t border-[#e8cba8] mt-8">
       <div className="max-w-7xl mx-auto px-4 py-10">
@@ -24,7 +39,7 @@ export function Footer({ siteName, siteLogo, phone, email, whatsapp, address }: 
               <h3 className="font-bold text-lg mb-3 text-[#3d1f08]">{siteName}</h3>
             )}
             <p className="text-gray-500 text-sm leading-relaxed">
-              Kaliteli ürünleri uygun fiyatlarla kapınıza kadar getiriyoruz.
+              {footerDescription || 'Kaliteli ürünleri uygun fiyatlarla kapınıza kadar getiriyoruz.'}
             </p>
             {whatsapp && (
               <a
@@ -45,12 +60,7 @@ export function Footer({ siteName, siteLogo, phone, email, whatsapp, address }: 
           <div>
             <h4 className="font-semibold mb-4 text-[#3d1f08]">Hızlı Linkler</h4>
             <ul className="space-y-2 text-sm text-gray-500">
-              {[
-                { href: '/', label: 'Ana Sayfa' },
-                { href: '/urunler', label: 'Tüm Ürünler' },
-                { href: '/sepet', label: 'Sepetim' },
-                { href: '/hesabim/siparisler', label: 'Siparişlerim' },
-              ].map(item => (
+              {quickLinks.map(item => (
                 <li key={item.href}>
                   <Link href={item.href} className="hover:text-[#3d1f08] transition">
                     {item.label}
@@ -93,8 +103,19 @@ export function Footer({ siteName, siteLogo, phone, email, whatsapp, address }: 
           </div>
         </div>
 
-        <div className="border-t border-[#e8cba8] mt-8 pt-6 text-center text-gray-400 text-sm">
-          © {new Date().getFullYear()} {siteName}. Tüm hakları saklıdır.
+        <div className="border-t border-[#e8cba8] mt-8 pt-6 text-center text-gray-400 text-sm space-y-1">
+          <p>© {new Date().getFullYear()} {siteName}. Tüm hakları saklıdır.</p>
+          <p>
+            Created by{' '}
+            <a
+              href="https://devrankacan.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#3d1f08] hover:underline font-medium"
+            >
+              Devran Kaçan
+            </a>
+          </p>
         </div>
       </div>
     </footer>
