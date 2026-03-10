@@ -24,20 +24,32 @@ export async function POST(req: NextRequest) {
 
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: { items: true, user: { select: { email: true, name: true } } },
+      include: {
+        items: true,
+        user: { select: { email: true } },
+      },
     })
     if (!order) return NextResponse.json({ error: 'Sipariş bulunamadı' }, { status: 404 })
 
-    const callbackUrl = `${process.env.NEXTAUTH_URL || req.nextUrl.origin}/api/payment/callback`
+    const baseUrl = process.env.NEXTAUTH_URL || req.nextUrl.origin
+    const callbackUrl = `${baseUrl}/api/payment/callback`
 
     // ── iyzico ──────────────────────────────────────────────────────────────
     if (provider === 'iyzico') {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const Iyzipay = require('iyzipay')
       const iyzipay = new Iyzipay({
         apiKey,
         secretKey,
-        uri: mode === 'live' ? 'https://api.iyzipay.com' : 'https://sandbox-api.iyzipay.com',
+        uri: mode === 'live'
+          ? 'https://api.iyzipay.com'
+          : 'https://sandbox-api.iyzipay.com',
       })
+
+      const buyerName = order.shippingName.trim() || 'Müşteri'
+      const nameParts = buyerName.split(' ')
+      const firstName = nameParts[0] || 'Müşteri'
+      const lastName = nameParts.slice(1).join(' ') || 'Soyad'
 
       const request = {
         locale: Iyzipay.LOCALE.TR,
@@ -51,10 +63,10 @@ export async function POST(req: NextRequest) {
         enabledInstallments: [1, 2, 3, 6, 9],
         buyer: {
           id: order.userId || order.orderNumber,
-          name: order.shippingName.split(' ')[0] || 'Müşteri',
-          surname: order.shippingName.split(' ').slice(1).join(' ') || 'Soyad',
+          name: firstName,
+          surname: lastName,
           gsmNumber: order.shippingPhone,
-          email: order.user?.email || 'musteri@example.com',
+          email: order.user?.email || 'musteri@iyzipay.com',
           identityNumber: '11111111111',
           registrationAddress: order.shippingAddress,
           city: order.shippingCity,
@@ -62,32 +74,35 @@ export async function POST(req: NextRequest) {
           zipCode: order.shippingPostalCode || '00000',
         },
         shippingAddress: {
-          contactName: order.shippingName,
+          contactName: buyerName,
           city: order.shippingCity,
           country: 'Turkey',
           address: order.shippingAddress,
           zipCode: order.shippingPostalCode || '00000',
         },
         billingAddress: {
-          contactName: order.shippingName,
+          contactName: buyerName,
           city: order.shippingCity,
           country: 'Turkey',
           address: order.shippingAddress,
           zipCode: order.shippingPostalCode || '00000',
         },
-        basketItems: order.items.map((item, i) => ({
+        basketItems: order.items.map((item) => ({
           id: item.id,
-          name: item.productName,
+          name: item.productName.substring(0, 100),
           category1: 'Ürün',
           itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
           price: item.totalPrice.toFixed(2),
         })),
       }
 
-      return new Promise((resolve) => {
+      return new Promise<NextResponse>((resolve) => {
         iyzipay.checkoutFormInitialize.create(request, (err: any, result: any) => {
-          if (err || result.status !== 'success') {
-            resolve(NextResponse.json({ error: result?.errorMessage || 'Ödeme başlatılamadı' }, { status: 400 }))
+          if (err || result?.status !== 'success') {
+            resolve(NextResponse.json(
+              { error: result?.errorMessage || 'Ödeme başlatılamadı' },
+              { status: 400 }
+            ))
           } else {
             resolve(NextResponse.json({
               provider: 'iyzico',
@@ -99,31 +114,20 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // ── Stripe ──────────────────────────────────────────────────────────────
-    if (provider === 'stripe') {
-      const Stripe = require('stripe')
-      const stripe = new Stripe(secretKey)
-      const session2 = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: order.items.map(item => ({
-          price_data: {
-            currency: 'try',
-            product_data: { name: item.productName },
-            unit_amount: Math.round(item.unitPrice * 100),
-          },
-          quantity: item.quantity,
-        })),
-        mode: 'payment',
-        success_url: `${process.env.NEXTAUTH_URL}/siparis-basarili?no=${order.orderNumber}`,
-        cancel_url: `${process.env.NEXTAUTH_URL}/odeme`,
-        metadata: { orderId: order.id, orderNumber: order.orderNumber },
-      })
-      return NextResponse.json({ provider: 'stripe', redirectUrl: session2.url })
+    // ── PayTR ─────────────────────────────────────────────────────────────
+    if (provider === 'paytr') {
+      return NextResponse.json(
+        { error: 'PayTR entegrasyonu yakında eklenecek' },
+        { status: 501 }
+      )
     }
 
     return NextResponse.json({ error: 'Desteklenmeyen ödeme sağlayıcısı' }, { status: 400 })
   } catch (e: any) {
     console.error('Payment init error:', e)
-    return NextResponse.json({ error: 'Ödeme başlatılamadı: ' + (e.message || 'Bilinmeyen hata') }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Ödeme başlatılamadı: ' + (e?.message || 'Bilinmeyen hata') },
+      { status: 500 }
+    )
   }
 }
