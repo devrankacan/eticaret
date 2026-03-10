@@ -9,60 +9,69 @@ export async function POST(req: NextRequest) {
     const apiKey = settings.payment_api_key
     const secretKey = settings.payment_secret_key
     const mode = settings.payment_mode || 'sandbox'
+    const baseUrl = process.env.NEXTAUTH_URL || req.nextUrl.origin
 
     const body = await req.text()
     const params = new URLSearchParams(body)
     const token = params.get('token')
-    const status = params.get('status')
 
     if (provider === 'iyzico') {
-      if (!token) return new NextResponse('Bad Request', { status: 400 })
+      if (!token) {
+        return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)
+      }
 
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const Iyzipay = require('iyzipay')
       const iyzipay = new Iyzipay({
         apiKey,
         secretKey,
-        uri: mode === 'live' ? 'https://api.iyzipay.com' : 'https://sandbox-api.iyzipay.com',
+        uri: mode === 'live'
+          ? 'https://api.iyzipay.com'
+          : 'https://sandbox-api.iyzipay.com',
       })
 
       const result: any = await new Promise((resolve) => {
-        iyzipay.checkoutForm.retrieve({ locale: 'tr', token }, (err: any, res: any) => {
-          resolve(err || res)
-        })
+        iyzipay.checkoutForm.retrieve(
+          { locale: 'tr', token },
+          (err: any, res: any) => resolve(err || res)
+        )
       })
 
-      if (result.status === 'success' && result.paymentStatus === 'SUCCESS') {
-        const orderNumber = result.basketId
-          ? (await prisma.order.findUnique({ where: { id: result.basketId }, select: { orderNumber: true } }))?.orderNumber
-          : result.conversationId
+      if (result?.status === 'success' && result?.paymentStatus === 'SUCCESS') {
+        // Siparişi bul - basketId = orderId, conversationId = orderNumber
+        let orderNumber = result.conversationId
+        if (result.basketId) {
+          const found = await prisma.order.findUnique({
+            where: { id: result.basketId },
+            select: { orderNumber: true },
+          })
+          if (found) orderNumber = found.orderNumber
+        }
 
         if (orderNumber) {
           await prisma.order.update({
             where: { orderNumber },
             data: {
               paymentStatus: 'paid',
-              paymentRef: result.paymentId,
+              paymentRef: String(result.paymentId || ''),
               status: 'confirmed',
             },
           })
-          return NextResponse.redirect(
-            new URL(`${process.env.NEXTAUTH_URL}/siparis-basarili?no=${orderNumber}`)
-          )
+          return NextResponse.redirect(`${baseUrl}/siparis-basarili?no=${orderNumber}`)
         }
       }
 
-      // Başarısız ödeme
-      return NextResponse.redirect(new URL(`${process.env.NEXTAUTH_URL}/odeme?payment=failed`))
+      return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)
     }
 
     return new NextResponse('OK', { status: 200 })
   } catch (e: any) {
     console.error('Payment callback error:', e)
-    return new NextResponse('Error', { status: 500 })
+    const baseUrl = process.env.NEXTAUTH_URL || ''
+    return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)
   }
 }
 
-// Stripe webhook için GET
-export async function GET(req: NextRequest) {
-  return NextResponse.redirect(new URL(`${process.env.NEXTAUTH_URL || '/'}`))
+export async function GET() {
+  return new NextResponse('Method Not Allowed', { status: 405 })
 }
