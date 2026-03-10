@@ -8,12 +8,20 @@ export async function GET(req: NextRequest) {
 
   try {
     // Admin kullanıcısı
-    const hashedPassword = await bcrypt.hash('admin123', 10)
-    await prisma.user.upsert({
-      where: { email: 'admin@site.com' },
-      update: {},
-      create: { name: 'Admin', email: 'admin@site.com', password: hashedPassword, role: 'admin' },
+    const hashedPassword = await bcrypt.hash('Atesoglu.79', 10)
+    const existingAdmin = await prisma.user.findFirst({
+      where: { OR: [{ email: 'admin@site.com' }, { email: 'info@atesoglusut.com' }, { role: 'admin' }] }
     })
+    if (existingAdmin) {
+      await prisma.user.update({
+        where: { id: existingAdmin.id },
+        data: { email: 'info@atesoglusut.com', password: hashedPassword, role: 'admin' }
+      })
+    } else {
+      await prisma.user.create({
+        data: { name: 'Admin', email: 'info@atesoglusut.com', password: hashedPassword, role: 'admin' }
+      })
+    }
     results.push('✅ Admin kullanıcısı')
 
     // Site ayarları
