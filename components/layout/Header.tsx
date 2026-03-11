@@ -157,7 +157,7 @@ export function Header({ categories, siteName, siteLogo, whatsapp, socialLinks, 
               </svg>
               <div className="leading-tight">
                 <p className="font-semibold text-gray-800 text-xs">{freeShippingText || 'Ücretsiz Kargo'}</p>
-                <p className="text-gray-400 text-[11px]">{freeShippingThreshold || '500'} TL ve Üzeri Alışverişlerde</p>
+                <p className="text-gray-400 text-[11px]">{freeShippingThreshold || '3.500'} TL ve Üzeri Alışverişlerde</p>
               </div>
             </div>
 

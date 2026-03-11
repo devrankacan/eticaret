@@ -13,6 +13,8 @@ interface Order {
   shippingName: string
   shippingPhone: string
   shippingCity: string
+  shippingDistrict: string
+  shippingAddress: string
   total: number
   createdAt: string
   _count: { items: number }
@@ -106,7 +108,8 @@ export default function SiparislerPage() {
                     </td>
                     <td className="p-4">
                       <p className="font-medium text-gray-900">{order.shippingName}</p>
-                      <p className="text-xs text-gray-400">{order.shippingPhone} · {order.shippingCity}</p>
+                      <p className="text-xs text-gray-400">{order.shippingPhone} · {order.shippingDistrict}/{order.shippingCity}</p>
+                      <p className="text-xs text-gray-300 truncate max-w-[180px]">{order.shippingAddress}</p>
                     </td>
                     <td className="p-4 text-center text-gray-500">{order._count.items} ürün</td>
                     <td className="p-4">

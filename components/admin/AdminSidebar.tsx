@@ -73,6 +73,11 @@ const navItems = [
     icon: 'M4 6h16M4 12h16M4 18h16',
   },
   {
+    label: 'İletişim',
+    href: '/admin/iletisim',
+    icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z',
+  },
+  {
     label: 'Ödeme API',
     href: '/admin/odeme-api',
     icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',

@@ -43,6 +43,8 @@ export async function GET(req: NextRequest) {
         shippingName: true,
         shippingPhone: true,
         shippingCity: true,
+        shippingDistrict: true,
+        shippingAddress: true,
         total: true,
         createdAt: true,
         _count: { select: { items: true } },
