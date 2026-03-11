@@ -29,6 +29,9 @@
     "tailwind-merge": "^2.2.1",
     "iyzipay": "^2.0.15"
   },
+  "engines": {
+    "node": ">=20 <21"
+  },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
