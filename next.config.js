@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['iyzipay'],
+  serverExternalPackages: ['iyzipay', 'pg', '@prisma/adapter-pg'],
   output: 'standalone',
   images: {
     remotePatterns: [
