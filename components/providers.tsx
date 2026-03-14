@@ -1,7 +1,7 @@
 'use client'
 
 import { SessionProvider } from 'next-auth/react'
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react'
 
 // Toast Context
 interface Toast {
@@ -64,6 +64,20 @@ export function Providers({
       }
     } catch {}
   }, [])
+
+  const originalTitle = useRef<string>('')
+  useEffect(() => {
+    originalTitle.current = document.title
+    const handleVisibility = () => {
+      if (document.hidden && cartCount > 0) {
+        document.title = '🛒 Siparişinizi tamamlayın!'
+      } else {
+        document.title = originalTitle.current
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [cartCount])
 
   return (
     <SessionProvider>

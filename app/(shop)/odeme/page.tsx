@@ -32,6 +32,14 @@ export default function OdemePage() {
   const [couponError, setCouponError] = useState('')
   const [discount, setDiscount] = useState(0)
 
+  const [bankInfo, setBankInfo] = useState({ bank_name: '', bank_iban: '', bank_account_holder: '', bank_branch: '' })
+
+  useEffect(() => {
+    fetch('/api/admin/settings').then(r => r.json()).then(data => {
+      setBankInfo({ bank_name: data.bank_name || '', bank_iban: data.bank_iban || '', bank_account_holder: data.bank_account_holder || '', bank_branch: data.bank_branch || '' })
+    }).catch(() => {})
+  }, [])
+
   const [form, setForm] = useState({
     shippingName: (session?.user?.name) || '',
     shippingPhone: '',
@@ -239,8 +247,17 @@ export default function OdemePage() {
 
               {(form.paymentMethod === 'bank_transfer' || form.paymentMethod === 'halkbank') && (
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                  <p className="text-sm font-semibold text-blue-800 mb-2">Havale Bilgileri</p>
-                  <p className="text-xs text-blue-700">Siparişiniz onaylandıktan sonra banka bilgileri e-posta ile gönderilecektir. Açıklama kısmına sipariş numaranızı yazmayı unutmayın.</p>
+                  <p className="text-sm font-semibold text-blue-800 mb-3">Havale / EFT Bilgileri</p>
+                  {bankInfo.bank_iban ? (
+                    <div className="space-y-1.5 text-xs text-blue-800">
+                      {bankInfo.bank_name && <div className="flex gap-2"><span className="text-blue-500 w-24 flex-shrink-0">Banka:</span><span className="font-medium">{bankInfo.bank_name}{bankInfo.bank_branch ? ` - ${bankInfo.bank_branch}` : ''}</span></div>}
+                      {bankInfo.bank_account_holder && <div className="flex gap-2"><span className="text-blue-500 w-24 flex-shrink-0">Hesap Adı:</span><span className="font-medium">{bankInfo.bank_account_holder}</span></div>}
+                      <div className="flex gap-2 items-center"><span className="text-blue-500 w-24 flex-shrink-0">IBAN:</span><span className="font-mono font-bold tracking-wide">{bankInfo.bank_iban}</span></div>
+                      <p className="mt-2 text-blue-600 border-t border-blue-200 pt-2">Açıklama kısmına sipariş numaranızı yazmayı unutmayın.</p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-blue-700">Siparişiniz onaylandıktan sonra banka bilgileri e-posta ile gönderilecektir.</p>
+                  )}
                 </div>
               )}
             </div>

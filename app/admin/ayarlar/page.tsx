@@ -20,6 +20,10 @@ interface Settings {
   min_order_amount: string
   instagram_username: string
   instagram_embed_code: string
+  bank_name: string
+  bank_iban: string
+  bank_account_holder: string
+  bank_branch: string
 }
 
 const defaults: Settings = {
@@ -39,6 +43,10 @@ const defaults: Settings = {
   min_order_amount: '',
   instagram_username: '',
   instagram_embed_code: '',
+  bank_name: '',
+  bank_iban: '',
+  bank_account_holder: '',
+  bank_branch: '',
 }
 
 export default function AyarlarPage() {
@@ -177,6 +185,29 @@ export default function AyarlarPage() {
             <div className="sm:col-span-2">
               <label className="text-sm font-medium text-gray-700 mb-1 block">Hakkımızda Metni</label>
               <textarea rows={4} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none" value={settings.about_text} onChange={e => set('about_text', e.target.value)} placeholder="Firma hakkında kısa tanıtım metni..." />
+            </div>
+          </div>
+        </div>
+
+        {/* Banka Bilgileri */}
+        <div className="bg-white rounded-2xl shadow-sm p-5">
+          <h2 className="font-bold text-gray-900 mb-4">Banka / Havale Bilgileri</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Banka Adı</label>
+              <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" value={settings.bank_name} onChange={e => set('bank_name', e.target.value)} placeholder="Halkbank" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Şube</label>
+              <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" value={settings.bank_branch} onChange={e => set('bank_branch', e.target.value)} placeholder="Merkez Şubesi" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Hesap Sahibi</label>
+              <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" value={settings.bank_account_holder} onChange={e => set('bank_account_holder', e.target.value)} placeholder="Ad Soyad / Firma Adı" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-sm font-medium text-gray-700 mb-1 block">IBAN</label>
+              <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 font-mono" value={settings.bank_iban} onChange={e => set('bank_iban', e.target.value.toUpperCase())} placeholder="TR00 0000 0000 0000 0000 0000 00" />
             </div>
           </div>
         </div>
