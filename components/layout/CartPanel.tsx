@@ -203,7 +203,7 @@ export function CartPanel({ isOpen, onClose }: Props) {
               </span>
             </div>
             <Link
-              href="/siparis"
+              href="/sepet"
               onClick={onClose}
               className="block w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-xl text-center transition"
             >
