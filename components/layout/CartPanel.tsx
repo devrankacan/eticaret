@@ -207,7 +207,7 @@ export function CartPanel({ isOpen, onClose }: Props) {
               onClick={onClose}
               className="block w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-xl text-center transition"
             >
-              Siparişe Devam Et
+              Siparişi Tamamla
             </Link>
             <button
               onClick={onClose}
