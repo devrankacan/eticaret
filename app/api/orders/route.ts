@@ -35,23 +35,28 @@ export async function POST(req: NextRequest) {
     paymentMethod, customerNote, couponCode,
   } = body
 
-  // Sepeti al
-  const key = session?.user
-    ? { userId: (session.user as any).id }
-    : { sessionId: cookieStore.get('cart_session')?.value ?? '' }
+  // Sepeti al — userId yoksa veya userId sepeti boşsa sessionId ile dene
+  const userId = session?.user ? (session.user as any).id as string : undefined
+  const sessionId = cookieStore.get('cart_session')?.value ?? ''
 
-  const cartItems = await prisma.cartItem.findMany({
-    where: key,
-    include: {
-      product: {
-        include: { images: { where: { isPrimary: true }, take: 1 } },
-      },
-    },
-  })
+  const include = {
+    product: { include: { images: { where: { isPrimary: true }, take: 1 } } },
+  } as const
+
+  let cartItems = userId
+    ? await prisma.cartItem.findMany({ where: { userId }, include })
+    : []
+
+  if (cartItems.length === 0 && sessionId) {
+    cartItems = await prisma.cartItem.findMany({ where: { sessionId }, include })
+  }
 
   if (cartItems.length === 0) {
     return NextResponse.json({ error: 'Sepetiniz boş' }, { status: 400 })
   }
+
+  // Hangi key ile bulunduysak onu sileceğiz
+  const deleteKey = cartItems[0].userId ? { userId: cartItems[0].userId } : { sessionId: cartItems[0].sessionId! }
 
   // Stok kontrol
   for (const item of cartItems) {
@@ -138,7 +143,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Sepeti temizle
-  await prisma.cartItem.deleteMany({ where: key })
+  await prisma.cartItem.deleteMany({ where: deleteKey })
 
   return NextResponse.json({ success: true, orderNumber: order.orderNumber, orderId: order.id })
 }

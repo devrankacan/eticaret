@@ -10,20 +10,29 @@ export default async function OdemePage() {
   const session = await getServerSession(authOptions)
   const cookieStore = cookies()
 
-  // Sepeti DB'den doğrudan çek — client fetch yok, timing sorunu yok
-  const key = (session?.user as any)?.id
-    ? { userId: (session!.user as any).id }
-    : { sessionId: cookieStore.get('cart_session')?.value ?? '' }
+  // Sepeti DB'den doğrudan çek
+  // Önce userId ile dene, boşsa sessionId ile dene (giriş öncesi eklenen ürünler için)
+  const userId = (session?.user as any)?.id as string | undefined
+  const sessionId = cookieStore.get('cart_session')?.value ?? ''
 
-  const cartItems = await prisma.cartItem.findMany({
-    where: key,
-    include: {
-      product: { include: { images: { where: { isPrimary: true }, take: 1 } } },
-    },
-    orderBy: { createdAt: 'asc' },
-  })
+  const include = {
+    product: { include: { images: { where: { isPrimary: true }, take: 1 } } },
+  } as const
 
-  // Sepet boşsa yönlendir
+  let cartItems = userId
+    ? await prisma.cartItem.findMany({ where: { userId }, include, orderBy: { createdAt: 'asc' } })
+    : []
+
+  // Kullanıcı giriş yapmış ama userId sepeti boş → sessionId ile dene
+  if (cartItems.length === 0 && sessionId) {
+    cartItems = await prisma.cartItem.findMany({ where: { sessionId }, include, orderBy: { createdAt: 'asc' } })
+  }
+
+  // Hiç giriş yoksa sessionId ile ara
+  if (cartItems.length === 0 && !userId && !sessionId) {
+    redirect('/sepet')
+  }
+
   if (cartItems.length === 0) {
     redirect('/sepet')
   }
