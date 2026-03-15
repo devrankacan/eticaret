@@ -124,7 +124,6 @@
     if (cfg.dealership) {
       const d = cfg.dealership;
       setText('cfg-deal-badge', d.badge);
-      setText('cfg-deal-title', d.title);
       setText('cfg-deal-title-hl', d.titleHighlight);
       setText('cfg-deal-desc1', d.description);
       setText('cfg-deal-desc2', d.description2);

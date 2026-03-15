@@ -252,11 +252,10 @@ img { max-width: 100%; display: block; }
   line-height: 1;
   margin-bottom: 20px;
 }
-.hero-title span {
-  /* Bold underline effect */
+.hero-title .hl {
   position: relative;
 }
-.hero-title span::after {
+.hero-title .hl::after {
   content: '';
   display: block;
   height: 4px;
