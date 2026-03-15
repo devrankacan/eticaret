@@ -122,9 +122,17 @@ export default function OdemePage() {
       const payData = await payRes.json()
       if (payRes.ok && payData.formHtml) {
         await refreshCart()
+        // innerHTML içindeki script çalışmaz, formu manuel gönder
         const div = document.createElement('div')
         div.innerHTML = payData.formHtml
         document.body.appendChild(div)
+        const hbForm = document.getElementById('hbForm') as HTMLFormElement | null
+        if (hbForm) {
+          hbForm.submit()
+        } else {
+          const anyForm = div.querySelector('form') as HTMLFormElement | null
+          if (anyForm) anyForm.submit()
+        }
         return
       }
       // Hata mesajını göster
