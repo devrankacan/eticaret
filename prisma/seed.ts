@@ -57,7 +57,7 @@ async function main() {
     { key: 'tax_rate',               value: '8',                  group: 'general' },
   ]
   for (const s of settings) {
-    await prisma.setting.upsert({ where: { key: s.key }, update: { value: s.value }, create: s })
+    await prisma.setting.upsert({ where: { key: s.key }, update: {}, create: s })
   }
 
   // ─── Eski ürün/kategori verilerini temizle ────────────────
