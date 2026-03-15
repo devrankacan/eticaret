@@ -142,8 +142,11 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Sepeti temizle
-  await prisma.cartItem.deleteMany({ where: deleteKey })
+  // Kredi kartı ödemesinde sepeti henüz silme — ödeme callback'de silinecek
+  // (3D Secure başarısız olursa kullanıcı tekrar deneyebilsin)
+  if (paymentMethod !== 'credit_card') {
+    await prisma.cartItem.deleteMany({ where: deleteKey })
+  }
 
   return NextResponse.json({ success: true, orderNumber: order.orderNumber, orderId: order.id })
 }

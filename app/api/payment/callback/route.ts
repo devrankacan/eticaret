@@ -87,14 +87,19 @@ export async function GET(req: NextRequest) {
       const paymentId = qp.get('payment_id') || qp.get('order_id') || ''
 
       if (invoiceId && statusCode === '00' && mdStatus === '1') {
-        await prisma.order.update({
+        const updatedOrder = await prisma.order.update({
           where: { orderNumber: invoiceId },
           data: {
             paymentStatus: 'paid',
             paymentRef: paymentId,
             status: 'confirmed',
           },
+          select: { userId: true },
         })
+        // Ödeme başarılı → sepeti temizle
+        if (updatedOrder.userId) {
+          await prisma.cartItem.deleteMany({ where: { userId: updatedOrder.userId } })
+        }
         return NextResponse.redirect(`${baseUrl}/siparis-basarili?no=${invoiceId}`)
       }
 
