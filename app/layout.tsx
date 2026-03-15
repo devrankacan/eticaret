@@ -12,11 +12,11 @@ export const viewport: Viewport = {
 
 export async function generateMetadata(): Promise<Metadata> {
   if (process.env.NEXT_PHASE === 'phase-production-build') {
-    return { title: { default: 'Mağaza', template: '%s | Mağaza' }, description: '' }
+    return { title: { default: 'Ateşoğlu Süt Ürünleri', template: '%s | Ateşoğlu Süt Ürünleri' }, description: '' }
   }
   const settings = await getAllSettings().catch(() => ({} as Record<string, string>))
   return {
-    title: { default: settings.site_name || 'Mağaza', template: `%s | ${settings.site_name || 'Mağaza'}` },
+    title: { default: settings.site_name || 'Ateşoğlu Süt Ürünleri', template: `%s | ${settings.site_name || 'Ateşoğlu Süt Ürünleri'}` },
     description: settings.meta_description || '',
   }
 }

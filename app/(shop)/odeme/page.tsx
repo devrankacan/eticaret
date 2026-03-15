@@ -33,9 +33,10 @@ export default function OdemePage() {
   const [discount, setDiscount] = useState(0)
 
   const [bankInfo, setBankInfo] = useState({ bank_name: '', bank_iban: '', bank_account_holder: '', bank_branch: '' })
+  const [cardInfo, setCardInfo] = useState({ cardNumber: '', cardHolder: '', expiry: '', cvv: '' })
 
   useEffect(() => {
-    fetch('/api/admin/settings').then(r => r.json()).then(data => {
+    fetch('/api/settings').then(r => r.json()).then(data => {
       setBankInfo({ bank_name: data.bank_name || '', bank_iban: data.bank_iban || '', bank_account_holder: data.bank_account_holder || '', bank_branch: data.bank_branch || '' })
     }).catch(() => {})
   }, [])
@@ -214,6 +215,7 @@ export default function OdemePage() {
               <h2 className="font-bold text-gray-900 mb-4">Ödeme Yöntemi</h2>
               <div className="space-y-3">
                 {[
+                  { value: 'credit_card', label: 'Kredi / Banka Kartı', desc: 'Visa, Mastercard veya Maestro ile güvenli ödeme yapın', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
                   { value: 'bank_transfer', label: 'Havale / EFT', desc: 'Banka hesabımıza havale yaparak ödeme yapın', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
                   { value: 'halkbank', label: 'Halk Bankası', desc: 'Halk Bankası hesabımıza EFT/havale yaparak ödeme yapın', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
                   { value: 'cash_on_delivery', label: 'Kapıda Ödeme', desc: 'Teslimat sırasında nakit veya kart ile ödeyin', icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' },
@@ -244,6 +246,72 @@ export default function OdemePage() {
                   </label>
                 ))}
               </div>
+
+              {form.paymentMethod === 'credit_card' && (
+                <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
+                  <p className="text-sm font-semibold text-gray-800">Kart Bilgileri</p>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Kart Numarası</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={19}
+                      value={cardInfo.cardNumber}
+                      onChange={e => {
+                        const v = e.target.value.replace(/\D/g, '').slice(0, 16)
+                        setCardInfo({ ...cardInfo, cardNumber: v.replace(/(.{4})/g, '$1 ').trim() })
+                      }}
+                      placeholder="0000 0000 0000 0000"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 font-mono tracking-wider"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Kart Üzerindeki İsim</label>
+                    <input
+                      type="text"
+                      value={cardInfo.cardHolder}
+                      onChange={e => setCardInfo({ ...cardInfo, cardHolder: e.target.value.toUpperCase() })}
+                      placeholder="AD SOYAD"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">Son Kullanma Tarihi</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={5}
+                        value={cardInfo.expiry}
+                        onChange={e => {
+                          const v = e.target.value.replace(/\D/g, '').slice(0, 4)
+                          setCardInfo({ ...cardInfo, expiry: v.length > 2 ? `${v.slice(0, 2)}/${v.slice(2)}` : v })
+                        }}
+                        placeholder="AA/YY"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">CVV</label>
+                      <input
+                        type="password"
+                        inputMode="numeric"
+                        maxLength={4}
+                        value={cardInfo.cvv}
+                        onChange={e => setCardInfo({ ...cardInfo, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                        placeholder="•••"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 font-mono"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Kart bilgileriniz SSL ile korunmaktadır
+                  </p>
+                </div>
+              )}
 
               {(form.paymentMethod === 'bank_transfer' || form.paymentMethod === 'halkbank') && (
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
