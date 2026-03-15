@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -30,8 +30,6 @@ export default function OdemePage() {
   const [error, setError] = useState('')
   const paymentFailed = searchParams.get('payment') === 'failed'
   const failedOrderNo = searchParams.get('no') || ''
-  // Sipariş işlenirken veya ödeme başarısız durumunda /sepet yönlendirmesini engelle
-  const blockRedirectRef = useRef(paymentFailed)
   const [couponCode, setCouponCode] = useState('')
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState('')
@@ -61,25 +59,18 @@ export default function OdemePage() {
     customerNote: '',
   })
 
-  // Sadece mount'ta bir kez çalışır — router bağımlılığı yok,
-  // router.push tetiklendiğinde yeniden çalışmaz
   useEffect(() => {
     let cancelled = false
     fetch('/api/cart')
       .then(r => r.json())
       .then(data => {
         if (cancelled) return
-        const cartItems = data.items || []
-        if (cartItems.length === 0 && !blockRedirectRef.current) {
-          window.location.href = '/sepet'
-          return
-        }
-        setItems(cartItems)
+        setItems(data.items || [])
         setLoading(false)
       })
       .catch(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (session?.user?.name) {
@@ -108,7 +99,6 @@ export default function OdemePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    blockRedirectRef.current = true  // Sipariş işlenirken /sepet yönlendirmesini engelle
     setSubmitting(true)
     setError('')
 
@@ -180,27 +170,41 @@ export default function OdemePage() {
     )
   }
 
-  if (paymentFailed && items.length === 0) {
+  // Sepet boşsa (ödeme başarısız veya direkt erişim) — yönlendirme yok, inline mesaj
+  if (!loading && items.length === 0 && !submitting) {
+    if (paymentFailed) {
+      return (
+        <div className="max-w-xl mx-auto px-4 py-16 text-center">
+          <div className="text-5xl mb-4">❌</div>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Ödeme Başarısız</h1>
+          <p className="text-gray-500 mb-6">
+            Ödeme işlemi tamamlanamadı. Siparişiniz oluşturuldu ancak ödeme alınamadı.
+            {failedOrderNo && <> Sipariş numaranız: <strong className="text-gray-800">#{failedOrderNo}</strong></>}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            {failedOrderNo && (
+              <Link href="/hesabim/siparisler"
+                className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-3 rounded-xl transition">
+                Siparişlerimi Gör
+              </Link>
+            )}
+            <Link href="/"
+              className="border border-gray-200 hover:border-gray-300 text-gray-700 font-semibold px-6 py-3 rounded-xl transition">
+              Ana Sayfaya Dön
+            </Link>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center">
-        <div className="text-5xl mb-4">❌</div>
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Ödeme Başarısız</h1>
-        <p className="text-gray-500 mb-6">
-          Ödeme işlemi tamamlanamadı. Siparişiniz oluşturuldu ancak ödeme alınamadı.
-          {failedOrderNo && <> Sipariş numaranız: <strong className="text-gray-800">#{failedOrderNo}</strong></>}
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          {failedOrderNo && (
-            <Link href={`/hesabim/siparisler`}
-              className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-3 rounded-xl transition">
-              Siparişlerimi Gör
-            </Link>
-          )}
-          <Link href="/"
-            className="border border-gray-200 hover:border-gray-300 text-gray-700 font-semibold px-6 py-3 rounded-xl transition">
-            Ana Sayfaya Dön
-          </Link>
-        </div>
+        <div className="text-5xl mb-4">🛒</div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Sepetiniz Boş</h1>
+        <p className="text-gray-500 mb-6">Ödeme yapabilmek için sepetinize ürün eklemeniz gerekiyor.</p>
+        <Link href="/urunler"
+          className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-3 rounded-xl transition">
+          Alışverişe Devam Et
+        </Link>
       </div>
     )
   }
