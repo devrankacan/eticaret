@@ -11,39 +11,39 @@ export async function GET(req: NextRequest) {
   const userId = (session?.user as any)?.id as string | undefined
   const sessionId = cookieStore.get('cart_session')?.value ?? ''
 
-  const allCookies = cookieStore.getAll().map(c => c.name)
+  const include = {
+    product: { include: { images: { where: { isPrimary: true }, take: 1 } } },
+  } as const
 
-  let cartByUserId: any[] = []
-  let cartBySessionId: any[] = []
+  // Odeme sayfasının TAM AYNI sorgusu
+  let cartItems = userId
+    ? await prisma.cartItem.findMany({ where: { userId }, include, orderBy: { createdAt: 'asc' } })
+    : []
 
-  if (userId) {
-    cartByUserId = await prisma.cartItem.findMany({
-      where: { userId },
-      select: { id: true, quantity: true, productId: true, userId: true, sessionId: true },
-    })
+  if (cartItems.length === 0 && sessionId) {
+    cartItems = await prisma.cartItem.findMany({ where: { sessionId }, include, orderBy: { createdAt: 'asc' } })
   }
 
-  if (sessionId) {
-    cartBySessionId = await prisma.cartItem.findMany({
-      where: { sessionId },
-      select: { id: true, quantity: true, productId: true, userId: true, sessionId: true },
-    })
-  }
-
-  // DB'deki tüm sepet kayıtlarından son 5 tane
-  const recentCartItems = await prisma.cartItem.findMany({
-    take: 5,
-    orderBy: { createdAt: 'desc' },
-    select: { id: true, quantity: true, userId: true, sessionId: true, createdAt: true },
+  // Ürünü direkt kontrol et
+  const productId = 'cmmqv92iy002nmbeq5dsfzfm8'
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { id: true, name: true, isActive: true, stock: true },
   })
 
   return NextResponse.json({
-    loggedIn: !!session?.user,
     userId: userId || null,
     sessionId: sessionId || null,
-    cookiesPresent: allCookies,
-    cartByUserId,
-    cartBySessionId,
-    recentCartItemsInDB: recentCartItems,
+    cartItemsCount: cartItems.length,
+    cartItems: cartItems.map(item => ({
+      id: item.id,
+      quantity: item.quantity,
+      productId: item.productId,
+      productExists: !!item.product,
+      productName: item.product?.name,
+      productIsActive: item.product?.isActive,
+      productStock: item.product?.stock,
+    })),
+    directProductCheck: product,
   }, { status: 200 })
 }
