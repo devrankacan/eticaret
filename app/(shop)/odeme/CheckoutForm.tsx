@@ -115,12 +115,11 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
     const payData = await payRes.json()
 
     if (payRes.ok && payData.formHtml) {
-      const div = document.createElement('div')
-      div.innerHTML = payData.formHtml
-      document.body.appendChild(div)
-      const frm = div.querySelector('form') as HTMLFormElement | null
-      if (frm) { refreshCart(); frm.submit(); return }
-      document.body.removeChild(div)
+      refreshCart()
+      document.open()
+      document.write(payData.formHtml)
+      document.close()
+      return
     }
 
     if (payRes.ok && payData.redirectUrl) {
