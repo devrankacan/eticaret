@@ -2,9 +2,9 @@
    GEM OUTDOOR – Main JavaScript
    ============================================================ */
 
-// ---- CONFIG: Set your YouTube video IDs here ----
-const HERO_VIDEO_ID    = 'YOUTUBE_VIDEO_ID';   // <-- Replace with hero background video ID
-const PRODUCT_VIDEO_ID = 'YOUTUBE_VIDEO_ID';   // <-- Replace with product section video ID
+// ---- CONFIG: YouTube video IDs (also editable via admin panel config) ----
+const HERO_VIDEO_ID    = (window.GEM_CONFIG && window.GEM_CONFIG.hero && window.GEM_CONFIG.hero.videoId) || '_C7p3nY3hiw';
+const PRODUCT_VIDEO_ID = (window.GEM_CONFIG && window.GEM_CONFIG.videoSection && window.GEM_CONFIG.videoSection.videoId) || 'VPEnipL_oeI';
 
 // ---- Navbar scroll effect ----
 (function () {
@@ -81,12 +81,11 @@ const PRODUCT_VIDEO_ID = 'YOUTUBE_VIDEO_ID';   // <-- Replace with product secti
   const iframe    = document.getElementById('modalIframe');
 
   function openModal() {
-    const videoId = PRODUCT_VIDEO_ID !== 'YOUTUBE_VIDEO_ID'
-      ? PRODUCT_VIDEO_ID
-      : HERO_VIDEO_ID;
+    // Prefer config-applied video ID (set by config-apply.js), fallback to constants
+    const videoId = window._GEM_VIDEO_ID || PRODUCT_VIDEO_ID || HERO_VIDEO_ID;
 
-    if (videoId === 'YOUTUBE_VIDEO_ID') {
-      alert('Video URL henüz ayarlanmamış. js/main.js dosyasında PRODUCT_VIDEO_ID değişkenini güncelleyin.');
+    if (!videoId) {
+      alert('Video URL henüz ayarlanmamış.');
       return;
     }
 
@@ -124,6 +123,33 @@ document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
     }
   });
 });
+
+// ---- Before / After Slider ----
+(function () {
+  const slider  = document.getElementById('baSlider');
+  const after   = document.getElementById('baAfter');
+  const handle  = document.getElementById('baHandle');
+  if (!slider || !after || !handle) return;
+
+  let dragging = false;
+
+  function setPosition(x) {
+    const rect = slider.getBoundingClientRect();
+    let pct = (x - rect.left) / rect.width;
+    pct = Math.max(0.02, Math.min(0.98, pct));
+    const pctRight = 1 - pct;
+    after.style.clipPath = 'inset(0 ' + (pctRight * 100).toFixed(2) + '% 0 0)';
+    handle.style.left = (pct * 100).toFixed(2) + '%';
+  }
+
+  slider.addEventListener('mousedown', function (e) { dragging = true; setPosition(e.clientX); });
+  window.addEventListener('mousemove', function (e) { if (dragging) setPosition(e.clientX); });
+  window.addEventListener('mouseup', function () { dragging = false; });
+
+  slider.addEventListener('touchstart', function (e) { dragging = true; setPosition(e.touches[0].clientX); }, { passive: true });
+  window.addEventListener('touchmove', function (e) { if (dragging) setPosition(e.touches[0].clientX); }, { passive: true });
+  window.addEventListener('touchend', function () { dragging = false; });
+})();
 
 // ---- Scroll reveal animation ----
 (function () {

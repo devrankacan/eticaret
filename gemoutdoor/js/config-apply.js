@@ -59,6 +59,9 @@
       if (metaDesc && cfg.site.metaDescription) metaDesc.content = cfg.site.metaDescription;
       setText('cfg-logo-gem', cfg.site.logoGem);
       setText('cfg-logo-outdoor', cfg.site.logoOutdoor);
+      if (cfg.site.logoImage) {
+        setImgSrc('cfg-logo-img', cfg.site.logoImage);
+      }
     }
 
     // ── HERO ──────────────────────────────────────────
@@ -92,11 +95,13 @@
     if (cfg.smartShine) {
       const s = cfg.smartShine;
       setText('cfg-shine-label', s.label);
+      setText('cfg-shine-label2', s.label);
       setText('cfg-shine-heading', s.heading);
       setText('cfg-shine-heading-bold', s.headingBold);
       setText('cfg-shine-sub', s.sub);
-      setImgSrc('cfg-shine-img1', s.image1);
-      setImgSrc('cfg-shine-img2', s.image2);
+      setImgSrc('cfg-shine-icons-img', s.iconsImage);
+      setImgSrc('cfg-shine-img-before', s.beforeImage);
+      setImgSrc('cfg-shine-img-after', s.afterImage);
     }
 
     // ── VIDEO SECTION ─────────────────────────────────

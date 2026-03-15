@@ -5,11 +5,12 @@ window.GEM_CONFIG = {
   site: {
     title: "GEM OUTDOOR – Caravans & Adventure",
     metaDescription: "GEM Outdoor – Premium caravans and outdoor living solutions.",
+    logoImage: "images/logo-beyaz.png",
     logoGem: "GEM",
     logoOutdoor: "OUTDOOR"
   },
   hero: {
-    videoId: "",
+    videoId: "_C7p3nY3hiw",
     eyebrow: "WELCOME TO BUILDLUX",
     title: "CYBER HAS",
     titleHighlight: "LANDED",
@@ -28,11 +29,12 @@ window.GEM_CONFIG = {
     heading: "Innovation meets",
     headingBold: "Mobile Living in Style",
     sub: "Let your voice lighten your journey!",
-    image1: "images/shine-1.jpg",
-    image2: "images/shine-2.jpg"
+    iconsImage: "images/ikonlar.png",
+    beforeImage: "images/shine-before.jpg",
+    afterImage: "images/shine-after.jpg"
   },
   videoSection: {
-    videoId: "",
+    videoId: "VPEnipL_oeI",
     bgImage: "images/video-bg.jpg",
     text: "Managing the <strong>caravan</strong>, from<br>setup to takedown, is<br>remarkably <strong>hassle-free</strong>."
   },
