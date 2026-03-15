@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
         cancel_url: callbackUrl,
       }
 
+      console.log('[HalkOde INIT] mode:', mode, 'gatewayUrl:', gatewayUrl)
       console.log('[HalkOde INIT] payload:', JSON.stringify({ ...payload, cc_no: '***', cvv: '***' }))
 
       const response = await fetch(gatewayUrl, {
