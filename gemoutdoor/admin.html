@@ -7,6 +7,33 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="config.js"></script>
   <style>
+    /* ── LOGIN ───────────────────────────────── */
+    .login-overlay {
+      position: fixed; inset: 0; background: #0f172a;
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .login-box {
+      background: #1e293b; border: 1px solid #334155; border-radius: 16px;
+      padding: 40px 36px; width: 360px; text-align: center;
+    }
+    .login-logo { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #f59e0b; margin-bottom: 4px; }
+    .login-logo span { color: #e2e8f0; font-weight: 400; }
+    .login-sub { font-size: 12px; color: #64748b; margin-bottom: 28px; }
+    .login-fg { text-align: left; margin-bottom: 14px; }
+    .login-fg label { font-size: 12px; color: #94a3b8; font-weight: 600; display: block; margin-bottom: 6px; }
+    .login-fg input {
+      width: 100%; padding: 11px 14px; background: #0f172a; border: 1px solid #334155;
+      border-radius: 8px; color: #e2e8f0; font-size: 14px; font-family: inherit;
+    }
+    .login-fg input:focus { outline: none; border-color: #f59e0b; }
+    .login-btn {
+      width: 100%; padding: 12px; background: #f59e0b; color: #0f172a;
+      border: none; border-radius: 8px; font-size: 14px; font-weight: 700;
+      cursor: pointer; margin-top: 8px; transition: background .15s;
+    }
+    .login-btn:hover { background: #d97706; }
+    .login-err { color: #ef4444; font-size: 12px; margin-top: 10px; min-height: 18px; }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --sb: 250px;
@@ -137,6 +164,24 @@
   </style>
 </head>
 <body>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">GEM<span>OUTDOOR</span></div>
+    <div class="login-sub">Admin Paneline Giriş</div>
+    <div class="login-fg">
+      <label>Kullanıcı Adı</label>
+      <input type="text" id="loginUser" autocomplete="username" />
+    </div>
+    <div class="login-fg">
+      <label>Şifre</label>
+      <input type="password" id="loginPass" autocomplete="current-password" />
+    </div>
+    <button class="login-btn" id="loginBtn"><i class="fa-solid fa-right-to-bracket"></i> Giriş Yap</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
 
 <!-- ══════════ SIDEBAR ══════════ -->
 <aside class="sidebar">
@@ -407,6 +452,34 @@
 
 <script>
 // ═══════════════════════════════════════════
+//  LOGIN  –  Kullanıcı adı ve şifreyi buradan değiştirin
+// ═══════════════════════════════════════════
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'gemoutdoor2025';
+
+function checkLogin() {
+  if (sessionStorage.getItem('gem_auth') === '1') {
+    document.getElementById('loginOverlay').style.display = 'none';
+    return;
+  }
+}
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    sessionStorage.setItem('gem_auth', '1');
+    document.getElementById('loginOverlay').style.display = 'none';
+    err.textContent = '';
+  } else {
+    err.textContent = 'Kullanıcı adı veya şifre hatalı.';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+// ═══════════════════════════════════════════
 //  DEFAULT CONFIG
 // ═══════════════════════════════════════════
 const DEFAULTS = {
@@ -598,6 +671,12 @@ function setStatus(saved) {
 //  INIT
 // ═══════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
+  // Login
+  checkLogin();
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('loginUser').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginPass').focus(); });
+
   populateForm(loadConfig());
   setStatus(true);
 
