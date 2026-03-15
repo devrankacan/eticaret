@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useCart } from '@/components/providers'
 
@@ -19,9 +19,17 @@ interface CartItem {
   }
 }
 
+// useSearchParams Suspense boundary gerektiriyor (Next.js 14)
 export default function OdemePage() {
+  return (
+    <Suspense>
+      <OdemePageContent />
+    </Suspense>
+  )
+}
+
+function OdemePageContent() {
   const { data: session } = useSession()
-  const router = useRouter()
   const searchParams = useSearchParams()
   const { refreshCart } = useCart()
   const [items, setItems] = useState<CartItem[]>([])
