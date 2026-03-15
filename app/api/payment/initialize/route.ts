@@ -16,7 +16,7 @@ function generateHashKey(
   const password = crypto.createHash('sha1').update(appSecret).digest('hex')
   const salt = crypto.createHash('sha1').update(Math.random().toString()).digest('hex').slice(0, 4)
   const saltWithPassword = crypto.createHash('sha256').update(password + salt).digest('hex')
-  const cipher = crypto.createCipheriv('aes-256-cbc', saltWithPassword, iv)
+  const cipher = crypto.createCipheriv('aes-256-cbc', saltWithPassword.slice(0, 32), iv)
   let encrypted = cipher.update(data, 'utf8', 'base64')
   encrypted += cipher.final('base64')
   return `${iv}:${salt}:${encrypted}`.replace(/\//g, '__')
