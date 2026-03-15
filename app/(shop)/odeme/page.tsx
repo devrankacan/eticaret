@@ -122,13 +122,15 @@ export default function OdemePage() {
       const payData = await payRes.json()
       if (payRes.ok && payData.formHtml) {
         await refreshCart()
-        // Halkbank formunu sayfaya ekle ve otomatik gönder
         const div = document.createElement('div')
         div.innerHTML = payData.formHtml
         document.body.appendChild(div)
         return
       }
-      // Ödeme başlatılamazsa sipariş yine de oluştu, başarı sayfasına gönder
+      // Hata mesajını göster
+      setError(payData.error || 'Ödeme başlatılamadı. Lütfen tekrar deneyin veya farklı ödeme yöntemi seçin.')
+      setSubmitting(false)
+      return
     }
 
     await refreshCart()
