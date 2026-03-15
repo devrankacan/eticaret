@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(`${baseUrl}/siparis-basarili?no=${invoiceId}`)
       }
 
-      return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)
+      return NextResponse.redirect(`${baseUrl}/odeme?payment=failed${invoiceId ? `&no=${invoiceId}` : ''}`)
     }
 
     return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)

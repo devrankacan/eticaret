@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useCart } from '@/components/providers'
 
@@ -22,11 +22,14 @@ interface CartItem {
 export default function OdemePage() {
   const { data: session } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { refreshCart } = useCart()
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const paymentFailed = searchParams.get('payment') === 'failed'
+  const failedOrderNo = searchParams.get('no') || ''
   const [couponCode, setCouponCode] = useState('')
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState('')
@@ -61,12 +64,17 @@ export default function OdemePage() {
     const data = await res.json()
     const cartItems = data.items || []
     if (cartItems.length === 0) {
+      if (paymentFailed) {
+        // Ödeme başarısız olduğunda sepet zaten silindi, /sepet'e yönlendirme
+        setLoading(false)
+        return
+      }
       router.push('/sepet')
       return
     }
     setItems(cartItems)
     setLoading(false)
-  }, [router])
+  }, [router, paymentFailed])
 
   useEffect(() => { fetchCart() }, [fetchCart])
 
@@ -131,12 +139,12 @@ export default function OdemePage() {
 
       // 3D HTML formu — inject edip gönder
       if (payRes.ok && payData.formHtml) {
-        await refreshCart()
         const div = document.createElement('div')
         div.innerHTML = payData.formHtml
         document.body.appendChild(div)
         const frm = (div.querySelector('form') as HTMLFormElement | null)
-        if (frm) { frm.submit(); return }
+        if (frm) { await refreshCart(); frm.submit(); return }
+        document.body.removeChild(div)
       }
 
       // Redirect URL
@@ -164,6 +172,31 @@ export default function OdemePage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center text-gray-400">
         <div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full mx-auto" />
+      </div>
+    )
+  }
+
+  if (paymentFailed && items.length === 0) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center">
+        <div className="text-5xl mb-4">❌</div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Ödeme Başarısız</h1>
+        <p className="text-gray-500 mb-6">
+          Ödeme işlemi tamamlanamadı. Siparişiniz oluşturuldu ancak ödeme alınamadı.
+          {failedOrderNo && <> Sipariş numaranız: <strong className="text-gray-800">#{failedOrderNo}</strong></>}
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          {failedOrderNo && (
+            <Link href={`/siparislerim`}
+              className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-3 rounded-xl transition">
+              Siparişlerimi Gör
+            </Link>
+          )}
+          <Link href="/"
+            className="border border-gray-200 hover:border-gray-300 text-gray-700 font-semibold px-6 py-3 rounded-xl transition">
+            Ana Sayfaya Dön
+          </Link>
+        </div>
       </div>
     )
   }
