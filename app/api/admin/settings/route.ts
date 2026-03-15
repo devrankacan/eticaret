@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { revalidateSettings } from '@/lib/utils'
 
 async function checkAdmin() {
   const session = await getServerSession(authOptions)
@@ -30,5 +31,6 @@ export async function POST(req: NextRequest) {
     })
   )
   await Promise.all(ops)
+  await revalidateSettings()
   return NextResponse.json({ ok: true })
 }
