@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       const mdStatus = params.get('md_status') || ''
       const paymentId = params.get('payment_id') || params.get('order_id') || ''
 
-      if (invoiceId && statusCode === '00' && mdStatus === '1') {
+      if (invoiceId && (statusCode === '00' || statusCode === '100') && mdStatus === '1') {
         const updatedOrder = await prisma.order.update({
           where: { orderNumber: invoiceId },
           data: { paymentStatus: 'paid', paymentRef: paymentId, status: 'confirmed' },
@@ -116,7 +116,7 @@ export async function GET(req: NextRequest) {
       const mdStatus = qp.get('md_status') || ''
       const paymentId = qp.get('payment_id') || qp.get('order_id') || ''
 
-      if (invoiceId && statusCode === '00' && mdStatus === '1') {
+      if (invoiceId && (statusCode === '00' || statusCode === '100') && mdStatus === '1') {
         const updatedOrder = await prisma.order.update({
           where: { orderNumber: invoiceId },
           data: {
