@@ -96,6 +96,14 @@ export default function OdemePage() {
     setSubmitting(true)
     setError('')
 
+    if (form.paymentMethod === 'credit_card') {
+      const rawCard = cardInfo.cardNumber.replace(/\s/g, '')
+      if (rawCard.length < 16) { setError('Lütfen geçerli bir kart numarası girin.'); setSubmitting(false); return }
+      if (!cardInfo.cardHolder.trim()) { setError('Lütfen kart üzerindeki ismi girin.'); setSubmitting(false); return }
+      if (cardInfo.expiry.length < 5) { setError('Lütfen son kullanma tarihini girin (AA/YY).'); setSubmitting(false); return }
+      if (cardInfo.cvv.length < 3) { setError('Lütfen CVV kodunu girin.'); setSubmitting(false); return }
+    }
+
     const res = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -217,7 +225,6 @@ export default function OdemePage() {
                 {[
                   { value: 'credit_card', label: 'Kredi / Banka Kartı', desc: 'Visa, Mastercard veya Maestro ile güvenli ödeme yapın', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
                   { value: 'bank_transfer', label: 'Havale / EFT', desc: 'Banka hesabımıza havale yaparak ödeme yapın', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
-                  { value: 'halkbank', label: 'Halk Bankası', desc: 'Halk Bankası hesabımıza EFT/havale yaparak ödeme yapın', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
                   { value: 'cash_on_delivery', label: 'Kapıda Ödeme', desc: 'Teslimat sırasında nakit veya kart ile ödeyin', icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' },
                 ].map(opt => (
                   <label

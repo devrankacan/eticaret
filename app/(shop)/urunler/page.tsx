@@ -11,8 +11,8 @@ interface Props {
 }
 
 export const metadata = {
-  title: 'Tüm Ürünler | Doğal Lezzet',
-  description: 'Doğal ve organik tüm ürünlerimizi keşfedin.',
+  title: 'Tüm Ürünler | Ateşoğlu Süt Ürünleri',
+  description: 'Tüm ürünlerimizi keşfedin.',
 }
 
 const LIMIT = 24

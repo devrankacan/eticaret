@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props) {
   const category = await prisma.category.findUnique({ where: { slug: params.slug } })
   if (!category) return {}
   return {
-    title: `${category.name} | Doğal Lezzet`,
+    title: `${category.name} | Ateşoğlu Süt Ürünleri`,
     description: category.description ?? `${category.name} kategorisindeki ürünler`,
   }
 }
