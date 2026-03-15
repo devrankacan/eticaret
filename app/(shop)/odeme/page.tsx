@@ -34,6 +34,7 @@ export default function OdemePage() {
 
   const [bankInfo, setBankInfo] = useState({ bank_name: '', bank_iban: '', bank_account_holder: '', bank_branch: '' })
   const [paymentEnabled, setPaymentEnabled] = useState(false)
+  const [cardForm, setCardForm] = useState({ holderName: '', ccNo: '', expiryMonth: '', expiryYear: '', cvv: '' })
 
   useEffect(() => {
     fetch('/api/settings').then(r => r.json()).then(data => {
@@ -112,30 +113,39 @@ export default function OdemePage() {
       return
     }
 
-    // Kredi kartı seçildiyse Halkbank 3D Secure sayfasına yönlendir
+    // Kredi kartı seçildiyse HalkÖde 3D Secure sayfasına yönlendir
     if (form.paymentMethod === 'credit_card') {
       const payRes = await fetch('/api/payment/initialize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: data.orderId }),
+        body: JSON.stringify({
+          orderId: data.orderId,
+          ccHolderName: cardForm.holderName,
+          ccNo: cardForm.ccNo.replace(/\s/g, ''),
+          expiryMonth: cardForm.expiryMonth,
+          expiryYear: cardForm.expiryYear,
+          cvv: cardForm.cvv,
+        }),
       })
       const payData = await payRes.json()
+
+      // 3D HTML formu — inject edip gönder
       if (payRes.ok && payData.formHtml) {
         await refreshCart()
-        // innerHTML içindeki script çalışmaz, formu manuel gönder
         const div = document.createElement('div')
         div.innerHTML = payData.formHtml
         document.body.appendChild(div)
-        const hbForm = document.getElementById('hbForm') as HTMLFormElement | null
-        if (hbForm) {
-          hbForm.submit()
-        } else {
-          const anyForm = div.querySelector('form') as HTMLFormElement | null
-          if (anyForm) anyForm.submit()
-        }
+        const frm = (div.querySelector('form') as HTMLFormElement | null)
+        if (frm) { frm.submit(); return }
+      }
+
+      // Redirect URL
+      if (payRes.ok && payData.redirectUrl) {
+        await refreshCart()
+        window.location.href = payData.redirectUrl
         return
       }
-      // Hata mesajını göster
+
       setError(payData.error || 'Ödeme başlatılamadı. Lütfen tekrar deneyin veya farklı ödeme yöntemi seçin.')
       setSubmitting(false)
       return
@@ -279,13 +289,84 @@ export default function OdemePage() {
               </div>
 
               {form.paymentMethod === 'credit_card' && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
-                  <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
+                <div className="mt-4 space-y-3">
+                  {/* Kart numarası */}
                   <div>
-                    <p className="text-sm font-semibold text-blue-800">Güvenli Ödeme</p>
-                    <p className="text-xs text-blue-700 mt-0.5">Siparişi Onayla'ya bastıktan sonra Halkbank'ın güvenli 3D ödeme sayfasına yönlendirileceksiniz. Kart bilgilerinizi orada gireceksiniz.</p>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Kart Numarası</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={19}
+                      placeholder="0000 0000 0000 0000"
+                      value={cardForm.ccNo}
+                      onChange={e => {
+                        const raw = e.target.value.replace(/\D/g, '').slice(0, 16)
+                        const formatted = raw.replace(/(.{4})/g, '$1 ').trim()
+                        setCardForm(c => ({ ...c, ccNo: formatted }))
+                      }}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-300"
+                      autoComplete="cc-number"
+                      required={form.paymentMethod === 'credit_card'}
+                    />
+                  </div>
+
+                  {/* Kart sahibi */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Kart Üzerindeki İsim</label>
+                    <input
+                      type="text"
+                      placeholder="AD SOYAD"
+                      value={cardForm.holderName}
+                      onChange={e => setCardForm(c => ({ ...c, holderName: e.target.value.toUpperCase() }))}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                      autoComplete="cc-name"
+                      required={form.paymentMethod === 'credit_card'}
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    {/* Son Kullanma Tarihi */}
+                    <div className="flex-1">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Son Kullanma (AA/YY)</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={5}
+                        placeholder="AA/YY"
+                        value={cardForm.expiryMonth && cardForm.expiryYear ? `${cardForm.expiryMonth}/${cardForm.expiryYear}` : (cardForm.expiryMonth || '')}
+                        onChange={e => {
+                          const raw = e.target.value.replace(/\D/g, '').slice(0, 4)
+                          const mm = raw.slice(0, 2)
+                          const yy = raw.slice(2, 4)
+                          setCardForm(c => ({ ...c, expiryMonth: mm, expiryYear: yy }))
+                        }}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-300"
+                        autoComplete="cc-exp"
+                        required={form.paymentMethod === 'credit_card'}
+                      />
+                    </div>
+                    {/* CVV */}
+                    <div className="w-28">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">CVV</label>
+                      <input
+                        type="password"
+                        inputMode="numeric"
+                        maxLength={4}
+                        placeholder="•••"
+                        value={cardForm.cvv}
+                        onChange={e => setCardForm(c => ({ ...c, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-300"
+                        autoComplete="cc-csc"
+                        required={form.paymentMethod === 'credit_card'}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-2">
+                    <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <p className="text-xs text-blue-700">256-bit SSL ile şifrelenmiş güvenli bağlantı. HalkÖde 3D Secure ile korumalı.</p>
                   </div>
                 </div>
               )}

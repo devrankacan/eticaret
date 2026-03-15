@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 
 interface PaymentSettings {
   payment_provider: string
+  payment_merchant_key: string
   payment_api_key: string
   payment_secret_key: string
   payment_merchant_id: string
@@ -14,16 +15,17 @@ interface PaymentSettings {
 
 const PROVIDERS = [
   {
-    id: 'halkbank',
-    name: 'Halkbank Sanal POS',
+    id: 'halkode',
+    name: 'HalkÖde Sanal POS',
     logo: '🏛️',
-    desc: 'Halkbank 3D Secure Sanal POS entegrasyonu. Mağaza ID, Kullanıcı Adı ve 3D Store Key ile çalışır.',
+    desc: 'Halk Elektronik Para ve Ödeme Hizmetleri. Üye İşyeri Anahtarı, Uygulama Anahtarı, Parolası ve İşyeri ID ile çalışır.',
     fields: [
-      { key: 'payment_merchant_id', label: 'Mağaza ID (Client ID)', placeholder: '100000000', type: 'text' },
-      { key: 'payment_api_key', label: 'Kullanıcı Adı', placeholder: 'HBAPI', type: 'text' },
-      { key: 'payment_secret_key', label: '3D Store Key', placeholder: '3D güvenlik anahtarınız', type: 'password' },
+      { key: 'payment_merchant_key', label: 'Üye İşyeri Anahtarı (Merchant Key)', placeholder: '$2y$10$...', type: 'password' },
+      { key: 'payment_api_key', label: 'Uygulama Anahtarı (App Key)', placeholder: 'de948c3e...', type: 'text' },
+      { key: 'payment_secret_key', label: 'Uygulama Parolası (App Secret)', placeholder: 'b15fba89...', type: 'password' },
+      { key: 'payment_merchant_id', label: 'Uygulama İşyeri ID', placeholder: '83526', type: 'text' },
     ],
-    docsUrl: 'https://spos.halkbank.com.tr',
+    docsUrl: 'https://github.com/HalkOdeme/Entegrasyon',
     modes: true,
   },
   {
@@ -67,6 +69,7 @@ const PROVIDERS = [
 
 const defaults: PaymentSettings = {
   payment_provider: '',
+  payment_merchant_key: '',
   payment_api_key: '',
   payment_secret_key: '',
   payment_merchant_id: '',
@@ -111,7 +114,9 @@ export default function OdemeApiPage() {
   }
 
   const selectedProvider = PROVIDERS.find(p => p.id === settings.payment_provider)
-  const isConfigured = settings.payment_api_key && settings.payment_secret_key && settings.payment_provider
+  const needsMerchantKey = settings.payment_provider === 'halkode'
+  const isConfigured = settings.payment_api_key && settings.payment_secret_key && settings.payment_provider &&
+    (!needsMerchantKey || settings.payment_merchant_key)
 
   if (loading) return <div className="p-6 text-center text-gray-400">Yükleniyor...</div>
 
