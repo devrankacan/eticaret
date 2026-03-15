@@ -58,10 +58,41 @@ export async function POST(req: NextRequest) {
         ? 'https://app.halkode.com.tr/ccpayment/api/paySmart3D'
         : 'https://testapp.halkode.com.tr/ccpayment/api/paySmart3D'
 
-      const total = order.total.toFixed(2)
       const invoiceId = order.orderNumber
       const installment = '1'
       const currencyCode = 'TRY'
+
+      // Build items with unitPrice so HalkOde's sum(price*qty) matches total
+      const paymentItems: { name: string; price: string; quantity: number; description: string }[] =
+        order.items.map(i => ({
+          name: i.productName.slice(0, 100),
+          price: i.unitPrice.toFixed(2),
+          quantity: i.quantity,
+          description: i.productName.slice(0, 100),
+        }))
+
+      // Add shipping as a line item so items sum == invoice total
+      if (order.shippingCost > 0) {
+        paymentItems.push({ name: 'Kargo', price: order.shippingCost.toFixed(2), quantity: 1, description: 'Kargo' })
+      }
+
+      // Compute total as exact sum(unitPrice * qty) to avoid float mismatch
+      const computedTotal = paymentItems.reduce((acc, it) => {
+        const line = Math.round(parseFloat(it.price) * 100 * it.quantity) / 100
+        return Math.round((acc + line) * 100) / 100
+      }, 0)
+
+      // Apply discount: distribute evenly or subtract from first item
+      let total: string
+      if (order.discountAmount > 0) {
+        const discounted = Math.round((computedTotal - order.discountAmount) * 100) / 100
+        // Adjust first item price so items still sum to discounted total
+        const adj = Math.round((parseFloat(paymentItems[0].price) - order.discountAmount / paymentItems[0].quantity) * 100) / 100
+        paymentItems[0] = { ...paymentItems[0], price: adj.toFixed(2) }
+        total = discounted.toFixed(2)
+      } else {
+        total = computedTotal.toFixed(2)
+      }
 
       const hashKey = generateHashKey(total, installment, currencyCode, merchantKey, invoiceId, appSecret)
 
@@ -85,12 +116,7 @@ export async function POST(req: NextRequest) {
         hash_key: hashKey,
         name: firstName,
         surname: lastName,
-        items: order.items.map(i => ({
-          name: i.productName.slice(0, 100),
-          price: i.totalPrice.toFixed(2),
-          quantity: i.quantity,
-          description: i.productName.slice(0, 100),
-        })),
+        items: paymentItems,
         return_url: callbackUrl,
         cancel_url: callbackUrl,
       }
