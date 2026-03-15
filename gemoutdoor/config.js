@@ -29,9 +29,8 @@ window.GEM_CONFIG = {
     heading: "Innovation meets",
     headingBold: "Mobile Living in Style",
     sub: "Let your voice lighten your journey!",
-    iconsImage: "images/ikonlar.png",
-    beforeImage: "images/shine-before.jpg",
-    afterImage: "images/shine-after.jpg"
+    image1: "images/shine-1.jpg",
+    image2: "images/shine-2.jpg"
   },
   videoSection: {
     videoId: "VPEnipL_oeI",

@@ -124,33 +124,6 @@ document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
   });
 });
 
-// ---- Before / After Slider ----
-(function () {
-  const slider  = document.getElementById('baSlider');
-  const after   = document.getElementById('baAfter');
-  const handle  = document.getElementById('baHandle');
-  if (!slider || !after || !handle) return;
-
-  let dragging = false;
-
-  function setPosition(x) {
-    const rect = slider.getBoundingClientRect();
-    let pct = (x - rect.left) / rect.width;
-    pct = Math.max(0.02, Math.min(0.98, pct));
-    const pctRight = 1 - pct;
-    after.style.clipPath = 'inset(0 ' + (pctRight * 100).toFixed(2) + '% 0 0)';
-    handle.style.left = (pct * 100).toFixed(2) + '%';
-  }
-
-  slider.addEventListener('mousedown', function (e) { dragging = true; setPosition(e.clientX); });
-  window.addEventListener('mousemove', function (e) { if (dragging) setPosition(e.clientX); });
-  window.addEventListener('mouseup', function () { dragging = false; });
-
-  slider.addEventListener('touchstart', function (e) { dragging = true; setPosition(e.touches[0].clientX); }, { passive: true });
-  window.addEventListener('touchmove', function (e) { if (dragging) setPosition(e.touches[0].clientX); }, { passive: true });
-  window.addEventListener('touchend', function () { dragging = false; });
-})();
-
 // ---- Scroll reveal animation ----
 (function () {
   const elements = document.querySelectorAll(
