@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -30,6 +30,8 @@ export default function OdemePage() {
   const [error, setError] = useState('')
   const paymentFailed = searchParams.get('payment') === 'failed'
   const failedOrderNo = searchParams.get('no') || ''
+  // Sipariş işlenirken veya ödeme başarısız durumunda /sepet yönlendirmesini engelle
+  const blockRedirectRef = useRef(paymentFailed)
   const [couponCode, setCouponCode] = useState('')
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState('')
@@ -64,8 +66,7 @@ export default function OdemePage() {
     const data = await res.json()
     const cartItems = data.items || []
     if (cartItems.length === 0) {
-      if (paymentFailed) {
-        // Ödeme başarısız olduğunda sepet zaten silindi, /sepet'e yönlendirme
+      if (blockRedirectRef.current) {
         setLoading(false)
         return
       }
@@ -74,7 +75,7 @@ export default function OdemePage() {
     }
     setItems(cartItems)
     setLoading(false)
-  }, [router, paymentFailed])
+  }, [router])
 
   useEffect(() => { fetchCart() }, [fetchCart])
 
@@ -105,6 +106,7 @@ export default function OdemePage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    blockRedirectRef.current = true  // Sipariş işlenirken /sepet yönlendirmesini engelle
     setSubmitting(true)
     setError('')
 
@@ -187,7 +189,7 @@ export default function OdemePage() {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {failedOrderNo && (
-            <Link href={`/siparislerim`}
+            <Link href={`/hesabim/siparisler`}
               className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-3 rounded-xl transition">
               Siparişlerimi Gör
             </Link>
