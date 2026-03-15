@@ -99,6 +99,8 @@ export async function POST(req: NextRequest) {
         cancel_url: callbackUrl,
       }
 
+      console.log('[HalkOde INIT] payload:', JSON.stringify({ ...payload, cc_no: '***', cvv: '***' }))
+
       const response = await fetch(gatewayUrl, {
         method: 'POST',
         headers: {
@@ -109,6 +111,7 @@ export async function POST(req: NextRequest) {
       })
 
       const text = await response.text()
+      console.log('[HalkOde INIT] response status:', response.status, 'body:', text.slice(0, 500))
       let result: any
       try { result = JSON.parse(text) } catch { result = { data: text } }
 
