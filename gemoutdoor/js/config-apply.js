@@ -34,9 +34,16 @@
     if (el && val !== undefined && val !== '') el.innerHTML = val;
   }
 
+  function uploads() { try { return JSON.parse(localStorage.getItem('gem_uploads') || '{}'); } catch(e) { return {}; } }
+  function resolveImg(url) { if (!url) return url; const u = uploads(); return u[url] || url; }
+
   function setAttr(id, attr, val) {
     const el = document.getElementById(id);
     if (el && val !== undefined && val !== '') el.setAttribute(attr, val);
+  }
+  function setImgSrc(id, url) {
+    const el = document.getElementById(id);
+    if (el && url) el.src = resolveImg(url);
   }
 
   function setHref(id, val) {
@@ -88,8 +95,8 @@
       setText('cfg-shine-heading', s.heading);
       setText('cfg-shine-heading-bold', s.headingBold);
       setText('cfg-shine-sub', s.sub);
-      setAttr('cfg-shine-img1', 'src', s.image1);
-      setAttr('cfg-shine-img2', 'src', s.image2);
+      setImgSrc('cfg-shine-img1', s.image1);
+      setImgSrc('cfg-shine-img2', s.image2);
     }
 
     // ── VIDEO SECTION ─────────────────────────────────
@@ -97,8 +104,7 @@
       const v = cfg.videoSection;
       window._GEM_VIDEO_ID = v.videoId;
       setHtml('cfg-video-text', v.text);
-      const bgEl = document.getElementById('cfg-video-bg');
-      if (bgEl && v.bgImage) bgEl.src = v.bgImage;
+      setImgSrc('cfg-video-bg', v.bgImage);
     }
 
     // ── APP SECTION ───────────────────────────────────
@@ -111,7 +117,7 @@
       setText('cfg-app-cursive', a.cursive);
       setText('cfg-app-btn', a.btnText);
       setHref('cfg-app-btn', a.btnLink);
-      setAttr('cfg-app-mockup', 'src', a.mockupImage);
+      setImgSrc('cfg-app-mockup', a.mockupImage);
     }
 
     // ── DEALERSHIP ────────────────────────────────────
@@ -124,7 +130,7 @@
       setText('cfg-deal-desc2', d.description2);
       setText('cfg-deal-btn', d.btnText);
       setHref('cfg-deal-btn', d.btnLink);
-      setAttr('cfg-deal-img', 'src', d.image);
+      setImgSrc('cfg-deal-img', d.image);
     }
 
     // ── CONTACT / FOOTER ──────────────────────────────
