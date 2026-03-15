@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GEM Outdoor – Admin Panel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="config.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sb: 250px;
+      --sb-bg: #0f172a;
+      --sb-hover: #1e293b;
+      --sb-active: #1e3a5f;
+      --accent: #f59e0b;
+      --accent-d: #d97706;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --input-b: #cbd5e1;
+      --focus: #3b82f6;
+      --green: #10b981;
+      --red: #ef4444;
+    }
+    html, body { height: 100%; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; font-size: 14px; }
+
+    /* ── SIDEBAR ─────────────────────────────── */
+    .sidebar {
+      width: var(--sb); min-height: 100vh; background: var(--sb-bg); color: #e2e8f0;
+      display: flex; flex-direction: column; position: fixed; top: 0; left: 0;
+      overflow-y: auto; z-index: 100; box-shadow: 2px 0 20px rgba(0,0,0,.3);
+    }
+    .sb-head { padding: 20px 18px 16px; border-bottom: 1px solid #1e293b; }
+    .sb-logo { font-size: 17px; font-weight: 800; letter-spacing: 1px; color: var(--accent); }
+    .sb-logo span { color: #e2e8f0; font-weight: 400; }
+    .sb-sub { font-size: 11px; color: #475569; margin-top: 3px; }
+    .sb-section { padding: 10px 0 4px; }
+    .sb-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #334155; padding: 0 18px 5px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 10px 18px;
+      cursor: pointer; font-size: 13px; color: #94a3b8; transition: all .15s;
+      border-left: 3px solid transparent; user-select: none;
+    }
+    .nav-item:hover { background: var(--sb-hover); color: #cbd5e1; }
+    .nav-item.active { background: var(--sb-active); color: #fff; border-left-color: var(--accent); }
+    .nav-item i { width: 16px; text-align: center; font-size: 13px; }
+    .sb-foot { margin-top: auto; padding: 14px; border-top: 1px solid #1e293b; display: flex; flex-direction: column; gap: 8px; }
+    .sb-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all .15s; text-decoration: none;
+    }
+    .sb-save  { background: var(--accent); color: #0f172a; }
+    .sb-save:hover  { background: var(--accent-d); }
+    .sb-dl    { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+    .sb-dl:hover    { background: #334155; color: #e2e8f0; }
+    .sb-prev  { background: #0c2340; color: #60a5fa; border: 1px solid #1e3a5f; }
+    .sb-prev:hover  { background: #1e3a5f; color: #fff; }
+
+    /* ── MAIN ────────────────────────────────── */
+    .main { margin-left: var(--sb); flex: 1; display: flex; flex-direction: column; }
+    .top-bar {
+      background: #fff; border-bottom: 1px solid var(--border); padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .top-bar h1 { font-size: 17px; font-weight: 700; }
+    .top-bar .badge { font-size: 11px; background: #f0fdf4; color: var(--green); border: 1px solid #bbf7d0; padding: 4px 11px; border-radius: 20px; }
+    .content { padding: 28px; max-width: 940px; }
+
+    /* ── PANELS ──────────────────────────────── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .panel-desc { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+
+    /* ── CARDS ───────────────────────────────── */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 18px; }
+    .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 16px; padding-bottom: 11px; border-bottom: 1px solid var(--border); }
+
+    /* ── FORM ────────────────────────────────── */
+    .grid { display: grid; gap: 14px; }
+    .g2  { grid-template-columns: 1fr 1fr; }
+    .g3  { grid-template-columns: 1fr 1fr 1fr; }
+    .g1  { grid-template-columns: 1fr; }
+    .full { grid-column: 1 / -1; }
+    .fg { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 12px; font-weight: 600; color: var(--text); }
+    .hint { font-size: 11px; color: var(--muted); font-weight: 400; }
+    input[type=text], input[type=url], input[type=email],
+    input[type=tel], input[type=number], textarea, select {
+      border: 1px solid var(--input-b); border-radius: 7px; padding: 9px 11px;
+      font-size: 13px; color: var(--text); background: #fff; width: 100%;
+      font-family: inherit; transition: border-color .15s;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none; border-color: var(--focus); box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+    }
+    textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+    .ico-wrap { position: relative; }
+    .ico-wrap i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12px; }
+    .ico-wrap input { padding-left: 32px; }
+    .video-hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .video-hint strong { color: #3b82f6; }
+
+    /* ── CERTIFICATE EDITOR ──────────────────── */
+    .cert-grid-edit { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .cert-card-edit { border: 1px solid var(--border); border-radius: 10px; padding: 16px; background: #f8fafc; }
+    .cert-num { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .cert-card-edit .fg { margin-bottom: 10px; }
+    .cert-card-edit .fg:last-child { margin-bottom: 0; }
+
+    /* ── SOCIAL GRID ─────────────────────────── */
+    .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ── TOAST ───────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 22px; right: 22px; background: #0f172a; color: #fff;
+      padding: 13px 18px; border-radius: 10px; display: flex; align-items: center; gap: 10px;
+      font-size: 13px; box-shadow: 0 8px 30px rgba(0,0,0,.25);
+      transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 9999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast .ok { color: var(--green); }
+    .toast .err { color: var(--red); }
+
+    /* ── RESPONSIVE ──────────────────────────── */
+    @media (max-width: 768px) {
+      .sidebar { width: 210px; }
+      .main { margin-left: 210px; }
+      .content { padding: 16px; }
+      .g2, .g3, .cert-grid-edit, .social-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside class="sidebar">
+  <div class="sb-head">
+    <div class="sb-logo">GEM<span>OUTDOOR</span></div>
+    <div class="sb-sub">Admin Panel</div>
+  </div>
+
+  <nav>
+    <div class="sb-section">
+      <div class="sb-label">Ayarlar</div>
+      <div class="nav-item active" data-s="genel"><i class="fa-solid fa-gear"></i> Genel Ayarlar</div>
+      <div class="nav-item" data-s="navbar"><i class="fa-solid fa-bars"></i> Navigasyon</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Sayfa Bölümleri</div>
+      <div class="nav-item" data-s="hero"><i class="fa-solid fa-film"></i> Hero / Ana Görsel</div>
+      <div class="nav-item" data-s="certs"><i class="fa-solid fa-certificate"></i> Sertifikalar</div>
+      <div class="nav-item" data-s="shine"><i class="fa-solid fa-star"></i> Smart Shine</div>
+      <div class="nav-item" data-s="video"><i class="fa-solid fa-circle-play"></i> Video Bölümü</div>
+      <div class="nav-item" data-s="app"><i class="fa-solid fa-mobile-screen"></i> Uygulama</div>
+      <div class="nav-item" data-s="deal"><i class="fa-solid fa-handshake"></i> Bayilik</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">İletişim</div>
+      <div class="nav-item" data-s="contact"><i class="fa-solid fa-address-book"></i> İletişim & Footer</div>
+    </div>
+  </nav>
+
+  <div class="sb-foot">
+    <button class="sb-btn sb-save" id="btnSave"><i class="fa-solid fa-floppy-disk"></i> Kaydet</button>
+    <button class="sb-btn sb-dl" id="btnExport"><i class="fa-solid fa-download"></i> config.js İndir</button>
+    <a href="index.html" target="_blank" class="sb-btn sb-prev"><i class="fa-solid fa-eye"></i> Önizle</a>
+  </div>
+</aside>
+
+<!-- ══════════ MAIN ══════════ -->
+<main class="main">
+  <div class="top-bar">
+    <h1 id="topTitle">Genel Ayarlar</h1>
+    <span class="badge" id="statusBadge"><i class="fa-solid fa-circle" style="font-size:7px;margin-right:4px"></i> Kaydedildi</span>
+  </div>
+
+  <div class="content">
+
+    <!-- ── GENEL ── -->
+    <div class="panel active" id="panel-genel">
+      <p class="panel-desc">Site başlığı, logo ve SEO meta bilgilerini düzenleyin.</p>
+      <div class="card">
+        <div class="card-title">Site Bilgileri</div>
+        <div class="grid g2">
+          <div class="fg"><label>Site Başlığı <span class="hint">(tarayıcı sekmesi)</span></label><input type="text" id="site_title" /></div>
+          <div class="fg"><label>Meta Açıklama <span class="hint">(Google için)</span></label><input type="text" id="site_metaDescription" /></div>
+          <div class="fg"><label>Logo – Kalın Kısım</label><input type="text" id="site_logoGem" /></div>
+          <div class="fg"><label>Logo – İnce Kısım</label><input type="text" id="site_logoOutdoor" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NAVBAR ── -->
+    <div class="panel" id="panel-navbar">
+      <p class="panel-desc">Navigasyon menüsündeki öğelerin isimlerini düzenleyin.</p>
+      <div class="card">
+        <div class="card-title">Menü Öğeleri</div>
+        <div class="grid g2">
+          <div class="fg"><label>1. Öğe</label><input type="text" id="nav_1" /></div>
+          <div class="fg"><label>2. Öğe</label><input type="text" id="nav_2" /></div>
+          <div class="fg"><label>2. Link</label><input type="text" id="nav_2_href" /></div>
+          <div class="fg"><label>3. Öğe</label><input type="text" id="nav_3" /></div>
+          <div class="fg"><label>4. Öğe</label><input type="text" id="nav_4" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HERO ── -->
+    <div class="panel" id="panel-hero">
+      <p class="panel-desc">Ana sayfa hero bölümü – YouTube video arka planı, başlık ve buton.</p>
+      <div class="card">
+        <div class="card-title">YouTube Video (Arka Plan)</div>
+        <div class="grid g1">
+          <div class="fg">
+            <label>Video ID <span class="hint">örn: dQw4w9WgXcQ</span></label>
+            <input type="text" id="hero_videoId" placeholder="YouTube video ID" />
+            <p class="video-hint">URL'den alın: youtube.com/watch?v=<strong>BU_KISIM</strong></p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Yazılar</div>
+        <div class="grid g2">
+          <div class="fg"><label>Üst Küçük Metin</label><input type="text" id="hero_eyebrow" /></div>
+          <div class="fg"><label>Ana Başlık</label><input type="text" id="hero_title" /></div>
+          <div class="fg"><label>Vurgulanan Başlık</label><input type="text" id="hero_titleHighlight" /></div>
+          <div class="fg"><label>Alt Başlık</label><input type="text" id="hero_subtitle" /></div>
+          <div class="fg"><label>Buton Metni</label><input type="text" id="hero_btnText" /></div>
+          <div class="fg"><label>Buton Linki</label><input type="text" id="hero_btnLink" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SERTIFIKALAR ── -->
+    <div class="panel" id="panel-certs">
+      <p class="panel-desc">4 sertifika kartının bilgilerini girin. Görseller için URL veya images/ klasörüne yüklediğiniz dosya adını yazın.</p>
+      <div class="cert-grid-edit">
+        <div class="cert-card-edit">
+          <div class="cert-num">Sertifika 1</div>
+          <div class="fg"><label>Marka Adı</label><input type="text" id="cert_0_brand" /></div>
+          <div class="fg"><label>Sertifika Başlığı</label><input type="text" id="cert_0_name" /></div>
+          <div class="fg"><label>Logo Görseli</label><input type="text" id="cert_0_brandLogo" placeholder="images/cert-logo-1.png" /></div>
+          <div class="fg"><label>Sertifika Görseli</label><input type="text" id="cert_0_image" placeholder="images/cert-1.jpg" /></div>
+        </div>
+        <div class="cert-card-edit">
+          <div class="cert-num">Sertifika 2</div>
+          <div class="fg"><label>Marka Adı</label><input type="text" id="cert_1_brand" /></div>
+          <div class="fg"><label>Sertifika Başlığı</label><input type="text" id="cert_1_name" /></div>
+          <div class="fg"><label>Logo Görseli</label><input type="text" id="cert_1_brandLogo" placeholder="images/cert-logo-2.png" /></div>
+          <div class="fg"><label>Sertifika Görseli</label><input type="text" id="cert_1_image" placeholder="images/cert-2.jpg" /></div>
+        </div>
+        <div class="cert-card-edit">
+          <div class="cert-num">Sertifika 3</div>
+          <div class="fg"><label>Marka Adı</label><input type="text" id="cert_2_brand" /></div>
+          <div class="fg"><label>Sertifika Başlığı</label><input type="text" id="cert_2_name" /></div>
+          <div class="fg"><label>Logo Görseli</label><input type="text" id="cert_2_brandLogo" placeholder="images/cert-logo-3.png" /></div>
+          <div class="fg"><label>Sertifika Görseli</label><input type="text" id="cert_2_image" placeholder="images/cert-3.jpg" /></div>
+        </div>
+        <div class="cert-card-edit">
+          <div class="cert-num">Sertifika 4</div>
+          <div class="fg"><label>Marka Adı</label><input type="text" id="cert_3_brand" /></div>
+          <div class="fg"><label>Sertifika Başlığı</label><input type="text" id="cert_3_name" /></div>
+          <div class="fg"><label>Logo Görseli</label><input type="text" id="cert_3_brandLogo" placeholder="images/cert-logo-4.png" /></div>
+          <div class="fg"><label>Sertifika Görseli</label><input type="text" id="cert_3_image" placeholder="images/cert-4.jpg" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SMART SHINE ── -->
+    <div class="panel" id="panel-shine">
+      <p class="panel-desc">Smart Shine bölümünün başlık ve görsellerini düzenleyin.</p>
+      <div class="card">
+        <div class="card-title">Yazılar</div>
+        <div class="grid g2">
+          <div class="fg"><label>Bölüm Etiketi</label><input type="text" id="shine_label" /></div>
+          <div class="fg"><label>Alt Başlık</label><input type="text" id="shine_sub" /></div>
+          <div class="fg"><label>Başlık (normal)</label><input type="text" id="shine_heading" /></div>
+          <div class="fg"><label>Başlık (kalın)</label><input type="text" id="shine_headingBold" /></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Görseller</div>
+        <div class="grid g2">
+          <div class="fg"><label>1. Görsel URL</label><input type="text" id="shine_image1" placeholder="images/shine-1.jpg" /></div>
+          <div class="fg"><label>2. Görsel URL</label><input type="text" id="shine_image2" placeholder="images/shine-2.jpg" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIDEO ── -->
+    <div class="panel" id="panel-video">
+      <p class="panel-desc">Video bölümü – oynat butonuna tıklandığında açılan YouTube video.</p>
+      <div class="card">
+        <div class="card-title">Video</div>
+        <div class="grid g1">
+          <div class="fg">
+            <label>YouTube Video ID</label>
+            <input type="text" id="video_videoId" placeholder="YouTube video ID" />
+            <p class="video-hint">youtube.com/watch?v=<strong>BU_KISIM</strong></p>
+          </div>
+          <div class="fg"><label>Arka Plan Görseli</label><input type="text" id="video_bgImage" placeholder="images/video-bg.jpg" /></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Açıklama Metni</div>
+        <div class="grid g1">
+          <div class="fg">
+            <label>Metin <span class="hint">(&lt;strong&gt;kalın&lt;/strong&gt; ve &lt;br&gt; kullanabilirsiniz)</span></label>
+            <textarea id="video_text"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── APP ── -->
+    <div class="panel" id="panel-app">
+      <p class="panel-desc">Uygulama tanıtım bölümünü düzenleyin.</p>
+      <div class="card">
+        <div class="card-title">Yazılar</div>
+        <div class="grid g2">
+          <div class="fg"><label>Logo Harfi</label><input type="text" id="app_logoLetter" /></div>
+          <div class="fg"><label>Üst Metin</label><input type="text" id="app_eyebrow" /></div>
+          <div class="fg"><label>Ana Başlık</label><input type="text" id="app_title" /></div>
+          <div class="fg"><label>Alt Başlık</label><input type="text" id="app_titleSub" /></div>
+          <div class="fg"><label>Kursiv Yazı</label><input type="text" id="app_cursive" /></div>
+          <div class="fg"><label>Buton Metni</label><input type="text" id="app_btnText" /></div>
+          <div class="fg full"><label>Buton Linki <span class="hint">(App Store / Play Store)</span></label><input type="url" id="app_btnLink" /></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Görsel</div>
+        <div class="grid g1">
+          <div class="fg"><label>Uygulama Mockup Görseli</label><input type="text" id="app_mockupImage" placeholder="images/app-mockup.png" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BAYILIK ── -->
+    <div class="panel" id="panel-deal">
+      <p class="panel-desc">Bayilik bölümünün içeriğini ve görselini düzenleyin.</p>
+      <div class="card">
+        <div class="card-title">Başlık & Metinler</div>
+        <div class="grid g1">
+          <div class="fg"><label>Rozet Yazısı</label><input type="text" id="deal_badge" /></div>
+          <div class="fg"><label>Başlık (1. kısım)</label><input type="text" id="deal_title" /></div>
+          <div class="fg"><label>Başlık (vurgulanan)</label><input type="text" id="deal_titleHighlight" /></div>
+          <div class="fg"><label>1. Paragraf</label><textarea id="deal_description"></textarea></div>
+          <div class="fg"><label>2. Paragraf</label><textarea id="deal_description2"></textarea></div>
+          <div class="grid g2">
+            <div class="fg"><label>Buton Metni</label><input type="text" id="deal_btnText" /></div>
+            <div class="fg"><label>Buton Linki</label><input type="text" id="deal_btnLink" /></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Görsel</div>
+        <div class="grid g1">
+          <div class="fg"><label>Görsel URL</label><input type="text" id="deal_image" placeholder="images/dealership.jpg" /></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONTACT ── -->
+    <div class="panel" id="panel-contact">
+      <p class="panel-desc">İletişim bilgileri, sosyal medya ve footer ayarları.</p>
+      <div class="card">
+        <div class="card-title">İletişim Bilgileri</div>
+        <div class="grid g2">
+          <div class="fg"><label>E-posta</label><div class="ico-wrap"><i class="fa-solid fa-envelope"></i><input type="email" id="contact_email" /></div></div>
+          <div class="fg"><label>Telefon</label><div class="ico-wrap"><i class="fa-solid fa-phone"></i><input type="tel" id="contact_phone" placeholder="+90 xxx xxx xx xx" /></div></div>
+          <div class="fg"><label>WhatsApp</label><div class="ico-wrap"><i class="fa-brands fa-whatsapp"></i><input type="tel" id="contact_whatsapp" placeholder="+90 xxx xxx xx xx" /></div></div>
+          <div class="fg full"><label>Adres</label><div class="ico-wrap"><i class="fa-solid fa-location-dot"></i><input type="text" id="contact_address" /></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Sosyal Medya</div>
+        <div class="social-grid">
+          <div class="fg"><label><i class="fa-brands fa-instagram"></i> Instagram URL</label><input type="url" id="contact_instagramUrl" /></div>
+          <div class="fg"><label><i class="fa-brands fa-facebook"></i> Facebook URL</label><input type="url" id="contact_facebookUrl" /></div>
+          <div class="fg"><label><i class="fa-brands fa-x-twitter"></i> Twitter/X URL</label><input type="url" id="contact_twitterUrl" /></div>
+          <div class="fg"><label><i class="fa-brands fa-linkedin"></i> LinkedIn URL</label><input type="url" id="contact_linkedinUrl" /></div>
+          <div class="fg"><label><i class="fa-brands fa-youtube"></i> YouTube URL</label><input type="url" id="contact_youtubeUrl" /></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Footer Alt Çizgi</div>
+        <div class="grid g1">
+          <div class="fg"><label>Telif Hakkı Metni</label><input type="text" id="footer_copyright" /></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <i id="toastIcon" class="fa-solid fa-circle-check ok"></i>
+  <span id="toastMsg">Kaydedildi!</span>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  DEFAULT CONFIG
+// ═══════════════════════════════════════════
+const DEFAULTS = {
+  site: { title:'GEM OUTDOOR – Caravans & Adventure', metaDescription:'', logoGem:'GEM', logoOutdoor:'OUTDOOR' },
+  navbar: { n1:'CARAVANS', n2:'CYBERGLAD', n2href:'#cyberglad', n3:'PRICES', n4:'CONTACT' },
+  hero: { videoId:'', eyebrow:'WELCOME TO BUILDLUX', title:'CYBER HAS', titleHighlight:'LANDED', subtitle:'Designed For Cybertruck. Ready For The World.', btnText:'EXPLORE CYBERGLAD', btnLink:'#cyberglad' },
+  certificates: [
+    { brand:'TÜV',       brandLogo:'images/cert-logo-1.png', name:'Production Conformity Certificate', image:'images/cert-1.jpg' },
+    { brand:'VW',        brandLogo:'images/cert-logo-2.png', name:'Production Conformity Certificate', image:'images/cert-2.jpg' },
+    { brand:'NSAI',      brandLogo:'images/cert-logo-3.png', name:'Production Conformity Certificate', image:'images/cert-3.jpg' },
+    { brand:'Stellantis',brandLogo:'',                       name:'Production Conformity Certificate', image:'images/cert-4.jpg' }
+  ],
+  smartShine: { label:'SMART SHINE', heading:'Innovation meets', headingBold:'Mobile Living in Style', sub:'Let your voice lighten your journey!', image1:'images/shine-1.jpg', image2:'images/shine-2.jpg' },
+  videoSection: { videoId:'', bgImage:'images/video-bg.jpg', text:'Managing the <strong>caravan</strong>, from<br>setup to takedown, is<br>remarkably <strong>hassle-free</strong>.' },
+  appSection: { logoLetter:'H', eyebrow:'WELCOME TO THE', title:'HOTOMOBIL', titleSub:'NEXT LEVEL', cursive:'Smart App', mockupImage:'images/app-mockup.png', btnText:'DOWNLOAD APP', btnLink:'#' },
+  dealership: { badge:'28+ Country & 6 Continent, Our Global Voyage', title:'EXPAND YOUR VISION WITH OUR', titleHighlight:'DEALERSHIP OPPORTUNITY.', description:'Expand your horizons and accelerate your business potential.', description2:'Collaborate with industry leaders, leverage established systems.', image:'images/dealership.jpg', btnText:'CONTACT DEALERSHIP', btnLink:'#contact' },
+  contact: { email:'info@gemoutdoor.com', address:'', phone:'', whatsapp:'', instagramUrl:'', facebookUrl:'', twitterUrl:'', linkedinUrl:'', youtubeUrl:'' },
+  footer: { copyright:'2025 GEM Outdoor. All rights reserved.' }
+};
+
+// ═══════════════════════════════════════════
+//  FIELD → CONFIG MAP
+// ═══════════════════════════════════════════
+const MAP = {
+  site_title:           ['site','title'],
+  site_metaDescription: ['site','metaDescription'],
+  site_logoGem:         ['site','logoGem'],
+  site_logoOutdoor:     ['site','logoOutdoor'],
+  nav_1:     ['navbar','n1'], nav_2:['navbar','n2'], nav_2_href:['navbar','n2href'],
+  nav_3:     ['navbar','n3'], nav_4:['navbar','n4'],
+  hero_videoId:['hero','videoId'], hero_eyebrow:['hero','eyebrow'],
+  hero_title:['hero','title'], hero_titleHighlight:['hero','titleHighlight'],
+  hero_subtitle:['hero','subtitle'], hero_btnText:['hero','btnText'], hero_btnLink:['hero','btnLink'],
+  cert_0_brand:['certificates',0,'brand'], cert_0_brandLogo:['certificates',0,'brandLogo'],
+  cert_0_name:['certificates',0,'name'],   cert_0_image:['certificates',0,'image'],
+  cert_1_brand:['certificates',1,'brand'], cert_1_brandLogo:['certificates',1,'brandLogo'],
+  cert_1_name:['certificates',1,'name'],   cert_1_image:['certificates',1,'image'],
+  cert_2_brand:['certificates',2,'brand'], cert_2_brandLogo:['certificates',2,'brandLogo'],
+  cert_2_name:['certificates',2,'name'],   cert_2_image:['certificates',2,'image'],
+  cert_3_brand:['certificates',3,'brand'], cert_3_brandLogo:['certificates',3,'brandLogo'],
+  cert_3_name:['certificates',3,'name'],   cert_3_image:['certificates',3,'image'],
+  shine_label:['smartShine','label'], shine_heading:['smartShine','heading'],
+  shine_headingBold:['smartShine','headingBold'], shine_sub:['smartShine','sub'],
+  shine_image1:['smartShine','image1'], shine_image2:['smartShine','image2'],
+  video_videoId:['videoSection','videoId'], video_bgImage:['videoSection','bgImage'],
+  video_text:['videoSection','text'],
+  app_logoLetter:['appSection','logoLetter'], app_eyebrow:['appSection','eyebrow'],
+  app_title:['appSection','title'], app_titleSub:['appSection','titleSub'],
+  app_cursive:['appSection','cursive'], app_mockupImage:['appSection','mockupImage'],
+  app_btnText:['appSection','btnText'], app_btnLink:['appSection','btnLink'],
+  deal_badge:['dealership','badge'], deal_title:['dealership','title'],
+  deal_titleHighlight:['dealership','titleHighlight'], deal_description:['dealership','description'],
+  deal_description2:['dealership','description2'], deal_image:['dealership','image'],
+  deal_btnText:['dealership','btnText'], deal_btnLink:['dealership','btnLink'],
+  contact_email:['contact','email'], contact_address:['contact','address'],
+  contact_phone:['contact','phone'], contact_whatsapp:['contact','whatsapp'],
+  contact_instagramUrl:['contact','instagramUrl'], contact_facebookUrl:['contact','facebookUrl'],
+  contact_twitterUrl:['contact','twitterUrl'], contact_linkedinUrl:['contact','linkedinUrl'],
+  contact_youtubeUrl:['contact','youtubeUrl'],
+  footer_copyright:['footer','copyright']
+};
+
+// ═══════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════
+function getVal(obj, path) {
+  return path.reduce((o,k) => (o && o[k] !== undefined ? o[k] : undefined), obj);
+}
+function setVal(obj, path, val) {
+  const last = path[path.length-1];
+  const parent = path.slice(0,-1).reduce((o,k)=>o[k], obj);
+  parent[last] = val;
+}
+function deepMerge(t, s) {
+  const r = JSON.parse(JSON.stringify(t));
+  for (const k in s) {
+    if (s[k] && typeof s[k]==='object' && !Array.isArray(s[k])) r[k] = deepMerge(r[k]||{}, s[k]);
+    else r[k] = s[k];
+  }
+  return r;
+}
+
+// ═══════════════════════════════════════════
+//  LOAD / SAVE / COLLECT
+// ═══════════════════════════════════════════
+function loadConfig() {
+  const base = JSON.parse(JSON.stringify(DEFAULTS));
+  // Merge window.GEM_CONFIG (from config.js file)
+  if (window.GEM_CONFIG) {
+    const merged = deepMerge(base, window.GEM_CONFIG);
+    // Also merge localStorage on top
+    const ls = localStorage.getItem('gem_config');
+    if (ls) { try { return deepMerge(merged, JSON.parse(ls)); } catch(e){} }
+    return merged;
+  }
+  const ls = localStorage.getItem('gem_config');
+  if (ls) { try { return deepMerge(base, JSON.parse(ls)); } catch(e){} }
+  return base;
+}
+
+function populateForm(cfg) {
+  for (const [fid, path] of Object.entries(MAP)) {
+    const el = document.getElementById(fid);
+    if (!el) continue;
+    const v = getVal(cfg, path);
+    if (v !== undefined) el.value = v;
+  }
+}
+
+function collectForm() {
+  const cfg = JSON.parse(JSON.stringify(DEFAULTS));
+  for (const [fid, path] of Object.entries(MAP)) {
+    const el = document.getElementById(fid);
+    if (!el) continue;
+    setVal(cfg, path, el.value);
+  }
+  return cfg;
+}
+
+function saveToLS() {
+  const cfg = collectForm();
+  localStorage.setItem('gem_config', JSON.stringify(cfg));
+  return cfg;
+}
+
+// ═══════════════════════════════════════════
+//  EXPORT config.js
+// ═══════════════════════════════════════════
+function exportConfig() {
+  const cfg = saveToLS();
+  // Remove navbar from exported config (not used by config-apply.js)
+  const exportCfg = { ...cfg };
+  delete exportCfg.navbar;
+  const js = `// GEM Outdoor – Site Konfigürasyonu\n// Bu dosyayı düzenleyip sunucuya yükleyin\nwindow.GEM_CONFIG = ${JSON.stringify(exportCfg, null, 2)};\n`;
+  const blob = new Blob([js], { type:'application/javascript' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'config.js'; a.click();
+  URL.revokeObjectURL(url);
+  toast('config.js indirildi! Sunucunuzdaki config.js dosyasıyla değiştirin.', 'ok');
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  const ic = document.getElementById('toastIcon');
+  document.getElementById('toastMsg').textContent = msg;
+  ic.className = type==='ok' ? 'fa-solid fa-circle-check ok' : 'fa-solid fa-circle-xmark err';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+const SECTION_TITLES = {
+  genel:'Genel Ayarlar', navbar:'Navigasyon Menüsü', hero:'Hero / Ana Görsel',
+  certs:'Sertifikalar', shine:'Smart Shine', video:'Video Bölümü',
+  app:'Uygulama Bölümü', deal:'Bayilik Bölümü', contact:'İletişim & Footer'
+};
+
+function switchSection(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  const ni = document.querySelector(`.nav-item[data-s="${id}"]`);
+  if (ni) ni.classList.add('active');
+  document.getElementById('topTitle').textContent = SECTION_TITLES[id] || id;
+}
+
+// ═══════════════════════════════════════════
+//  STATUS BADGE
+// ═══════════════════════════════════════════
+function setStatus(saved) {
+  const b = document.getElementById('statusBadge');
+  if (saved) {
+    b.style.background = '#f0fdf4'; b.style.color = '#10b981'; b.style.borderColor = '#bbf7d0';
+    b.innerHTML = '<i class="fa-solid fa-circle" style="font-size:7px;margin-right:4px"></i> Kaydedildi';
+  } else {
+    b.style.background = '#fff7ed'; b.style.color = '#f59e0b'; b.style.borderColor = '#fed7aa';
+    b.innerHTML = '<i class="fa-solid fa-circle" style="font-size:7px;margin-right:4px"></i> Kaydedilmemiş değişiklik';
+  }
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  populateForm(loadConfig());
+  setStatus(true);
+
+  // Nav clicks
+  document.querySelectorAll('.nav-item[data-s]').forEach(item => {
+    item.addEventListener('click', () => switchSection(item.dataset.s));
+  });
+
+  // Save button
+  document.getElementById('btnSave').addEventListener('click', () => {
+    saveToLS();
+    setStatus(true);
+    toast('Kaydedildi! Önizle butonundan kontrol edebilirsiniz.');
+  });
+
+  // Export button
+  document.getElementById('btnExport').addEventListener('click', exportConfig);
+
+  // Auto-save tracking (mark unsaved on change)
+  let autoTimer;
+  document.querySelectorAll('input, textarea, select').forEach(el => {
+    el.addEventListener('input', () => {
+      setStatus(false);
+      clearTimeout(autoTimer);
+      autoTimer = setTimeout(() => {
+        saveToLS();
+        setStatus(true);
+      }, 1500);
+    });
+  });
+});
+</script>
+</body>
+</html>
