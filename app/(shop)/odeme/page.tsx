@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -61,23 +61,25 @@ export default function OdemePage() {
     customerNote: '',
   })
 
-  const fetchCart = useCallback(async () => {
-    const res = await fetch('/api/cart')
-    const data = await res.json()
-    const cartItems = data.items || []
-    if (cartItems.length === 0) {
-      if (blockRedirectRef.current) {
+  // Sadece mount'ta bir kez çalışır — router bağımlılığı yok,
+  // router.push tetiklendiğinde yeniden çalışmaz
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/cart')
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled) return
+        const cartItems = data.items || []
+        if (cartItems.length === 0 && !blockRedirectRef.current) {
+          window.location.href = '/sepet'
+          return
+        }
+        setItems(cartItems)
         setLoading(false)
-        return
-      }
-      router.push('/sepet')
-      return
-    }
-    setItems(cartItems)
-    setLoading(false)
-  }, [router])
-
-  useEffect(() => { fetchCart() }, [fetchCart])
+      })
+      .catch(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (session?.user?.name) {
@@ -162,7 +164,7 @@ export default function OdemePage() {
     }
 
     await refreshCart()
-    router.push(`/siparis-basarili?no=${data.orderNumber}`)
+    window.location.href = `/siparis-basarili?no=${data.orderNumber}`
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
