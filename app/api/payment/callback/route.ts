@@ -63,6 +63,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.redirect(`${baseUrl}/siparis-basarili?payment=failed`)
     }
 
+    // HalkÖde POST callback (return_url POST)
+    if (provider === 'halkode' || provider === 'halkbank') {
+      const allParams: Record<string, string> = {}
+      params.forEach((v, k) => { allParams[k] = v })
+      console.log('[HalkOde POST callback] params:', JSON.stringify(allParams))
+
+      const invoiceId = params.get('invoice_id') || ''
+      const statusCode = params.get('status_code') || ''
+      const mdStatus = params.get('md_status') || ''
+      const paymentId = params.get('payment_id') || params.get('order_id') || ''
+
+      if (invoiceId && statusCode === '00' && mdStatus === '1') {
+        const updatedOrder = await prisma.order.update({
+          where: { orderNumber: invoiceId },
+          data: { paymentStatus: 'paid', paymentRef: paymentId, status: 'confirmed' },
+          select: { userId: true },
+        })
+        if (updatedOrder.userId) {
+          await prisma.cartItem.deleteMany({ where: { userId: updatedOrder.userId } })
+        }
+        return NextResponse.redirect(`${baseUrl}/siparis-basarili?no=${invoiceId}`)
+      }
+
+      return NextResponse.redirect(`${baseUrl}/siparis-basarili?payment=failed${invoiceId ? `&no=${invoiceId}` : ''}`)
+    }
+
     return new NextResponse('OK', { status: 200 })
   } catch (e: any) {
     console.error('Payment callback error:', e)
@@ -80,7 +106,11 @@ export async function GET(req: NextRequest) {
     const qp = req.nextUrl.searchParams
 
     if (provider === 'halkode' || provider === 'halkbank') {
-      // HalkÖde: ?invoice_id=...&status_code=00&md_status=1&payment_id=...&order_id=...
+      // Log all params for debugging
+      const allParams: Record<string, string> = {}
+      qp.forEach((v, k) => { allParams[k] = v })
+      console.log('[HalkOde GET callback] params:', JSON.stringify(allParams))
+
       const invoiceId = qp.get('invoice_id') || ''
       const statusCode = qp.get('status_code') || ''
       const mdStatus = qp.get('md_status') || ''
