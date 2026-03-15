@@ -23,15 +23,11 @@ export default async function OdemePage() {
     ? await prisma.cartItem.findMany({ where: { userId }, include, orderBy: { createdAt: 'asc' } })
     : []
 
-  // Kullanıcı giriş yapmış ama userId sepeti boş → sessionId ile dene
   if (cartItems.length === 0 && sessionId) {
     cartItems = await prisma.cartItem.findMany({ where: { sessionId }, include, orderBy: { createdAt: 'asc' } })
   }
 
-  // Hiç giriş yoksa sessionId ile ara
-  if (cartItems.length === 0 && !userId && !sessionId) {
-    redirect('/sepet')
-  }
+  console.log('[ODEME]', { userId, sessionId, cartCount: cartItems.length })
 
   if (cartItems.length === 0) {
     redirect('/sepet')
