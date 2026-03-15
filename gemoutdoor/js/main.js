@@ -1,0 +1,151 @@
+/* ============================================================
+   GEM OUTDOOR – Main JavaScript
+   ============================================================ */
+
+// ---- CONFIG: Set your YouTube video IDs here ----
+const HERO_VIDEO_ID    = 'YOUTUBE_VIDEO_ID';   // <-- Replace with hero background video ID
+const PRODUCT_VIDEO_ID = 'YOUTUBE_VIDEO_ID';   // <-- Replace with product section video ID
+
+// ---- Navbar scroll effect ----
+(function () {
+  const navbar = document.getElementById('navbar');
+  function onScroll() {
+    if (window.scrollY > 60) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+// ---- Mobile nav toggle ----
+(function () {
+  const toggle = document.getElementById('navToggle');
+  const menu   = document.getElementById('navMenu');
+
+  toggle.addEventListener('click', function () {
+    menu.classList.toggle('open');
+    const isOpen = menu.classList.contains('open');
+    toggle.setAttribute('aria-expanded', isOpen);
+    // Animate hamburger → X
+    const spans = toggle.querySelectorAll('span');
+    if (isOpen) {
+      spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
+      spans[1].style.opacity   = '0';
+      spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
+    } else {
+      spans[0].style.transform = '';
+      spans[1].style.opacity   = '';
+      spans[2].style.transform = '';
+    }
+  });
+
+  // Mobile dropdown toggles
+  document.querySelectorAll('.nav-item.has-dropdown .nav-link').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      if (window.innerWidth <= 768) {
+        e.preventDefault();
+        const item = this.closest('.nav-item');
+        item.classList.toggle('open');
+      }
+    });
+  });
+
+  // Close menu on outside click
+  document.addEventListener('click', function (e) {
+    if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+      menu.classList.remove('open');
+    }
+  });
+})();
+
+// ---- Hero YouTube video ID injection ----
+(function () {
+  if (HERO_VIDEO_ID === 'YOUTUBE_VIDEO_ID') return; // Skip if not configured
+  const iframe = document.getElementById('heroVideo');
+  if (iframe) {
+    iframe.src = 'https://www.youtube.com/embed/' + HERO_VIDEO_ID +
+      '?autoplay=1&mute=1&loop=1&playlist=' + HERO_VIDEO_ID +
+      '&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&playsinline=1';
+  }
+})();
+
+// ---- Video section modal ----
+(function () {
+  const playBtn   = document.getElementById('videoPlayBtn');
+  const modal     = document.getElementById('videoModal');
+  const backdrop  = document.getElementById('modalBackdrop');
+  const closeBtn  = document.getElementById('modalClose');
+  const iframe    = document.getElementById('modalIframe');
+
+  function openModal() {
+    const videoId = PRODUCT_VIDEO_ID !== 'YOUTUBE_VIDEO_ID'
+      ? PRODUCT_VIDEO_ID
+      : HERO_VIDEO_ID;
+
+    if (videoId === 'YOUTUBE_VIDEO_ID') {
+      alert('Video URL henüz ayarlanmamış. js/main.js dosyasında PRODUCT_VIDEO_ID değişkenini güncelleyin.');
+      return;
+    }
+
+    iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    iframe.src = '';
+    document.body.style.overflow = '';
+  }
+
+  if (playBtn) playBtn.addEventListener('click', openModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (backdrop) backdrop.addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
+})();
+
+// ---- Smooth scroll for anchor links ----
+document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+  anchor.addEventListener('click', function (e) {
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      const navH = document.getElementById('navbar').offsetHeight;
+      const top  = target.getBoundingClientRect().top + window.scrollY - navH;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+      // Close mobile menu if open
+      document.getElementById('navMenu').classList.remove('open');
+    }
+  });
+});
+
+// ---- Scroll reveal animation ----
+(function () {
+  const elements = document.querySelectorAll(
+    '.cert-card, .shine-text-col, .shine-images-col, .dealership-text-col, .dealership-info-col, .dealership-img-col, .app-img-col, .app-text-col'
+  );
+
+  elements.forEach(function (el) {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+  });
+
+  const observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  elements.forEach(function (el) { observer.observe(el); });
+})();
