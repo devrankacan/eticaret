@@ -59,9 +59,6 @@
       if (metaDesc && cfg.site.metaDescription) metaDesc.content = cfg.site.metaDescription;
       setText('cfg-logo-gem', cfg.site.logoGem);
       setText('cfg-logo-outdoor', cfg.site.logoOutdoor);
-      if (cfg.site.logoImage) {
-        setImgSrc('cfg-logo-img', cfg.site.logoImage);
-      }
     }
 
     // ── HERO ──────────────────────────────────────────

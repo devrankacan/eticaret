@@ -2,9 +2,9 @@
    GEM OUTDOOR – Main JavaScript
    ============================================================ */
 
-// ---- CONFIG: YouTube video IDs (also editable via admin panel config) ----
-const HERO_VIDEO_ID    = (window.GEM_CONFIG && window.GEM_CONFIG.hero && window.GEM_CONFIG.hero.videoId) || '_C7p3nY3hiw';
-const PRODUCT_VIDEO_ID = (window.GEM_CONFIG && window.GEM_CONFIG.videoSection && window.GEM_CONFIG.videoSection.videoId) || 'VPEnipL_oeI';
+// ---- CONFIG: Set your YouTube video IDs here ----
+const HERO_VIDEO_ID    = 'YOUTUBE_VIDEO_ID';   // <-- Replace with hero background video ID
+const PRODUCT_VIDEO_ID = 'YOUTUBE_VIDEO_ID';   // <-- Replace with product section video ID
 
 // ---- Navbar scroll effect ----
 (function () {
@@ -81,11 +81,12 @@ const PRODUCT_VIDEO_ID = (window.GEM_CONFIG && window.GEM_CONFIG.videoSection &&
   const iframe    = document.getElementById('modalIframe');
 
   function openModal() {
-    // Prefer config-applied video ID (set by config-apply.js), fallback to constants
-    const videoId = window._GEM_VIDEO_ID || PRODUCT_VIDEO_ID || HERO_VIDEO_ID;
+    const videoId = PRODUCT_VIDEO_ID !== 'YOUTUBE_VIDEO_ID'
+      ? PRODUCT_VIDEO_ID
+      : HERO_VIDEO_ID;
 
-    if (!videoId) {
-      alert('Video URL henüz ayarlanmamış.');
+    if (videoId === 'YOUTUBE_VIDEO_ID') {
+      alert('Video URL henüz ayarlanmamış. js/main.js dosyasında PRODUCT_VIDEO_ID değişkenini güncelleyin.');
       return;
     }
 

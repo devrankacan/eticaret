@@ -93,14 +93,7 @@ img { max-width: 100%; display: block; }
   margin: 0 auto;
   padding: 18px 32px;
 }
-.nav-logo { display: flex; align-items: center; gap: 0; }
-.nav-logo-img {
-  height: 40px;
-  width: auto;
-  display: block;
-  object-fit: contain;
-}
-.nav-logo-text { display: flex; align-items: baseline; gap: 0; }
+.nav-logo { display: flex; align-items: baseline; gap: 0; }
 .logo-gem {
   font-family: var(--font-heading);
   font-size: 1.6rem;
