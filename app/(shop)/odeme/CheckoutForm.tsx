@@ -119,7 +119,7 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
       div.innerHTML = payData.formHtml
       document.body.appendChild(div)
       const frm = div.querySelector('form') as HTMLFormElement | null
-      if (frm) { await refreshCart(); frm.submit(); return }
+      if (frm) { refreshCart(); frm.submit(); return }
       document.body.removeChild(div)
     }
 
