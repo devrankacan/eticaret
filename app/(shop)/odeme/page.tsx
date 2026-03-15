@@ -33,11 +33,14 @@ export default function OdemePage() {
   const [discount, setDiscount] = useState(0)
 
   const [bankInfo, setBankInfo] = useState({ bank_name: '', bank_iban: '', bank_account_holder: '', bank_branch: '' })
-  const [cardInfo, setCardInfo] = useState({ cardNumber: '', cardHolder: '', expiry: '', cvv: '' })
+  const [paymentEnabled, setPaymentEnabled] = useState(false)
 
   useEffect(() => {
     fetch('/api/settings').then(r => r.json()).then(data => {
       setBankInfo({ bank_name: data.bank_name || '', bank_iban: data.bank_iban || '', bank_account_holder: data.bank_account_holder || '', bank_branch: data.bank_branch || '' })
+    }).catch(() => {})
+    fetch('/api/admin/settings').then(r => r.json()).then(data => {
+      setPaymentEnabled(data.payment_enabled === '1' && !!data.payment_provider)
     }).catch(() => {})
   }, [])
 
@@ -96,14 +99,6 @@ export default function OdemePage() {
     setSubmitting(true)
     setError('')
 
-    if (form.paymentMethod === 'credit_card') {
-      const rawCard = cardInfo.cardNumber.replace(/\s/g, '')
-      if (rawCard.length < 16) { setError('Lütfen geçerli bir kart numarası girin.'); setSubmitting(false); return }
-      if (!cardInfo.cardHolder.trim()) { setError('Lütfen kart üzerindeki ismi girin.'); setSubmitting(false); return }
-      if (cardInfo.expiry.length < 5) { setError('Lütfen son kullanma tarihini girin (AA/YY).'); setSubmitting(false); return }
-      if (cardInfo.cvv.length < 3) { setError('Lütfen CVV kodunu girin.'); setSubmitting(false); return }
-    }
-
     const res = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -115,6 +110,25 @@ export default function OdemePage() {
       setError(data.error || 'Sipariş oluşturulamadı')
       setSubmitting(false)
       return
+    }
+
+    // Kredi kartı seçildiyse Halkbank 3D Secure sayfasına yönlendir
+    if (form.paymentMethod === 'credit_card') {
+      const payRes = await fetch('/api/payment/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: data.orderId }),
+      })
+      const payData = await payRes.json()
+      if (payRes.ok && payData.formHtml) {
+        await refreshCart()
+        // Halkbank formunu sayfaya ekle ve otomatik gönder
+        const div = document.createElement('div')
+        div.innerHTML = payData.formHtml
+        document.body.appendChild(div)
+        return
+      }
+      // Ödeme başlatılamazsa sipariş yine de oluştu, başarı sayfasına gönder
     }
 
     await refreshCart()
@@ -255,68 +269,14 @@ export default function OdemePage() {
               </div>
 
               {form.paymentMethod === 'credit_card' && (
-                <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
-                  <p className="text-sm font-semibold text-gray-800">Kart Bilgileri</p>
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
+                  <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Kart Numarası</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={19}
-                      value={cardInfo.cardNumber}
-                      onChange={e => {
-                        const v = e.target.value.replace(/\D/g, '').slice(0, 16)
-                        setCardInfo({ ...cardInfo, cardNumber: v.replace(/(.{4})/g, '$1 ').trim() })
-                      }}
-                      placeholder="0000 0000 0000 0000"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 font-mono tracking-wider"
-                    />
+                    <p className="text-sm font-semibold text-blue-800">Güvenli Ödeme</p>
+                    <p className="text-xs text-blue-700 mt-0.5">Siparişi Onayla'ya bastıktan sonra Halkbank'ın güvenli 3D ödeme sayfasına yönlendirileceksiniz. Kart bilgilerinizi orada gireceksiniz.</p>
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Kart Üzerindeki İsim</label>
-                    <input
-                      type="text"
-                      value={cardInfo.cardHolder}
-                      onChange={e => setCardInfo({ ...cardInfo, cardHolder: e.target.value.toUpperCase() })}
-                      placeholder="AD SOYAD"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">Son Kullanma Tarihi</label>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={5}
-                        value={cardInfo.expiry}
-                        onChange={e => {
-                          const v = e.target.value.replace(/\D/g, '').slice(0, 4)
-                          setCardInfo({ ...cardInfo, expiry: v.length > 2 ? `${v.slice(0, 2)}/${v.slice(2)}` : v })
-                        }}
-                        placeholder="AA/YY"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">CVV</label>
-                      <input
-                        type="password"
-                        inputMode="numeric"
-                        maxLength={4}
-                        value={cardInfo.cvv}
-                        onChange={e => setCardInfo({ ...cardInfo, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) })}
-                        placeholder="•••"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 font-mono"
-                      />
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-400 flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    Kart bilgileriniz SSL ile korunmaktadır
-                  </p>
                 </div>
               )}
 

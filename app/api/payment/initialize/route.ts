@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getAllSettings } from '@/lib/utils'
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) return NextResponse.json({ error: 'Giriş gerekli' }, { status: 401 })
-
     const settings = await getAllSettings()
     const provider = settings.payment_provider
     const apiKey = settings.payment_api_key
