@@ -1,8 +1,44 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
 
-function OrderSuccessContent({ searchParams }: { searchParams: { no?: string } }) {
+function OrderSuccessContent({ searchParams }: { searchParams: { no?: string; payment?: string } }) {
   const orderNo = searchParams.no
+  const failed = searchParams.payment === 'failed'
+
+  if (failed) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-16 text-center">
+        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Ödeme Başarısız</h1>
+
+        {orderNo && (
+          <p className="text-gray-500 mb-1">
+            Sipariş No: <span className="font-bold text-gray-800">{orderNo}</span>
+          </p>
+        )}
+
+        <p className="text-gray-500 mb-8">
+          Ödeme işlemi tamamlanamadı. Lütfen kart bilgilerinizi kontrol ederek tekrar deneyin veya farklı bir ödeme yöntemi seçin.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link href="/hesabim/siparisler"
+            className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-3 rounded-xl transition">
+            Siparişlerimi Görüntüle
+          </Link>
+          <Link href="/"
+            className="border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold px-6 py-3 rounded-xl transition">
+            Ana Sayfaya Dön
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-lg mx-auto px-4 py-16 text-center">
@@ -45,7 +81,7 @@ function OrderSuccessContent({ searchParams }: { searchParams: { no?: string } }
   )
 }
 
-export default function SiparisBasariliPage({ searchParams }: { searchParams: { no?: string } }) {
+export default function SiparisBasariliPage({ searchParams }: { searchParams: { no?: string; payment?: string } }) {
   return (
     <Suspense>
       <OrderSuccessContent searchParams={searchParams} />

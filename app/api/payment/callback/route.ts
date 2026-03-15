@@ -60,14 +60,14 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)
+      return NextResponse.redirect(`${baseUrl}/siparis-basarili?payment=failed`)
     }
 
     return new NextResponse('OK', { status: 200 })
   } catch (e: any) {
     console.error('Payment callback error:', e)
     const baseUrl = process.env.NEXTAUTH_URL || ''
-    return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)
+    return NextResponse.redirect(`${baseUrl}/siparis-basarili?payment=failed`)
   }
 }
 
@@ -98,13 +98,13 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(`${baseUrl}/siparis-basarili?no=${invoiceId}`)
       }
 
-      return NextResponse.redirect(`${baseUrl}/odeme?payment=failed${invoiceId ? `&no=${invoiceId}` : ''}`)
+      return NextResponse.redirect(`${baseUrl}/siparis-basarili?payment=failed${invoiceId ? `&no=${invoiceId}` : ''}`)
     }
 
-    return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)
+    return NextResponse.redirect(`${baseUrl}/siparis-basarili?payment=failed`)
   } catch (e: any) {
     console.error('Payment GET callback error:', e)
     const baseUrl = process.env.NEXTAUTH_URL || ''
-    return NextResponse.redirect(`${baseUrl}/odeme?payment=failed`)
+    return NextResponse.redirect(`${baseUrl}/siparis-basarili?payment=failed`)
   }
 }
