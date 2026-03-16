@@ -776,16 +776,16 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Contact info sidebar */
 .contact-info-card {
-  background: var(--dark);
+  background: #f0f2f4;
   border-radius: var(--radius);
   padding: 28px 24px;
 }
 .contact-info-card h3 {
   font-family: var(--font-heading); font-size: 1rem;
   font-weight: 700; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--white);
+  text-transform: uppercase; color: #1a1a1a;
   margin-bottom: 20px; padding-bottom: 14px;
-  border-bottom: 1px solid #1e1e1e;
+  border-bottom: 1px solid #dde0e4;
 }
 .contact-info-item {
   display: flex; align-items: flex-start; gap: 12px;
@@ -799,9 +799,9 @@ img { max-width: 100%; height: auto; display: block; }
 .contact-info-item .ci-label {
   font-family: var(--font-heading); font-size: 0.68rem;
   letter-spacing: 2px; text-transform: uppercase;
-  color: #888; margin-bottom: 2px;
+  color: #666; margin-bottom: 2px;
 }
-.contact-info-item .ci-value { font-size: 0.88rem; color: #ddd; }
+.contact-info-item .ci-value { font-size: 0.88rem; color: #333; }
 .contact-info-item .ci-value a { color: var(--blue); }
 .contact-info-item .ci-value a:hover { text-decoration: underline; }
 
