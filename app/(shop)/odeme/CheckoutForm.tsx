@@ -22,9 +22,11 @@ interface Props {
   bankInfo: { bank_name: string; bank_iban: string; bank_account_holder: string; bank_branch: string }
   paymentEnabled: boolean
   userName: string
+  freeShippingThreshold: number
+  minOrderAmount: number
 }
 
-export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName }: Props) {
+export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName, freeShippingThreshold, minOrderAmount }: Props) {
   const { refreshCart } = useCart()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -41,13 +43,14 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
     shippingDistrict: '',
     shippingAddress: '',
     shippingPostalCode: '',
-    paymentMethod: 'bank_transfer',
+    paymentMethod: 'bank_transfer' as string,
     customerNote: '',
   })
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-  const shippingCost = subtotal >= 3500 ? 0 : 39.9
+  const shippingCost = (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) ? 0 : 250
   const total = subtotal + shippingCost - discount
+  const belowMinOrder = minOrderAmount > 0 && subtotal < minOrderAmount
   const deliveryDate = (() => {
     const d = new Date()
     d.setDate(d.getDate() + 3)
@@ -75,6 +78,10 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (belowMinOrder) {
+      setError(`Minimum sipariş tutarı ${minOrderAmount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺'dir.`)
+      return
+    }
     setSubmitting(true)
     setError('')
 
@@ -93,7 +100,7 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
     }
 
     // Havale / Kapıda Ödeme → başarı sayfasına git
-    if (form.paymentMethod !== 'credit_card') {
+    if (form.paymentMethod !== 'credit_card' ) {
       await refreshCart()
       window.location.href = `/siparis-basarili?no=${data.orderNumber}`
       return
@@ -223,7 +230,8 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
                 {[
                   ...(paymentEnabled ? [{ value: 'credit_card', label: 'Kredi / Banka Kartı', desc: 'Visa, Mastercard veya Maestro ile güvenli ödeme yapın' }] : []),
                   { value: 'bank_transfer', label: 'Havale / EFT', desc: 'Banka hesabımıza havale yaparak ödeme yapın' },
-                  { value: 'cash_on_delivery', label: 'Kapıda Ödeme', desc: 'Teslimat sırasında nakit veya kart ile ödeyin' },
+                  { value: 'cash_on_delivery_cash', label: 'Kapıda Nakit Ödeme', desc: 'Teslimat sırasında nakit olarak ödeyin' },
+                  { value: 'cash_on_delivery_card', label: 'Kapıda Kredi Kartı ile Ödeme', desc: 'Teslimat sırasında kredi kartı ile ödeyin' },
                 ].map(opt => (
                   <label
                     key={opt.value}
@@ -414,8 +422,13 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
                 )}
                 <div className="flex justify-between text-gray-500">
                   <span>Kargo</span>
-                  <span>{shippingCost > 0 ? `${shippingCost.toFixed(2)} TL` : 'Ücretsiz'}</span>
+                  <span>{shippingCost > 0 ? `${shippingCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL` : 'Ücretsiz'}</span>
                 </div>
+                {shippingCost > 0 && freeShippingThreshold > 0 && (
+                  <p className="text-xs text-blue-600">
+                    {freeShippingThreshold.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ ve üzeri alışverişlerde kargo ücretsiz
+                  </p>
+                )}
                 <div className="flex justify-between font-bold text-gray-900 text-base border-t pt-3">
                   <span>Toplam</span>
                   <span>{total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL</span>
@@ -426,6 +439,12 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
                 Tahmini Teslimat: <strong>{deliveryDate}</strong>
               </div>
 
+              {belowMinOrder && (
+                <div className="mt-3 p-3 bg-orange-50 border border-orange-200 text-orange-700 text-sm rounded-xl">
+                  Minimum sipariş tutarı <strong>{minOrderAmount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</strong>'dir. Sepetinize daha fazla ürün ekleyiniz.
+                </div>
+              )}
+
               {error && (
                 <div className="mt-3 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
                   {error}
@@ -433,7 +452,7 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
               )}
 
               <button
-                type="submit" disabled={submitting}
+                type="submit" disabled={submitting || belowMinOrder}
                 className="mt-4 w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition"
               >
                 {submitting ? 'İşleniyor...' : 'Siparişi Onayla'}

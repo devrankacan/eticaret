@@ -42,6 +42,8 @@ export default async function OdemePage() {
     bank_branch: settings.bank_branch || '',
   }
   const paymentEnabled = settings.payment_enabled === '1' && !!settings.payment_provider
+  const freeShippingThreshold = parseFloat(settings.free_shipping_threshold || '0') || 0
+  const minOrderAmount = parseFloat(settings.min_order_amount || '0') || 0
 
   // Serileştirilebilir veri hazırla
   const items = cartItems.map(item => ({
@@ -62,6 +64,8 @@ export default async function OdemePage() {
       bankInfo={bankInfo}
       paymentEnabled={paymentEnabled}
       userName={(session?.user as any)?.name || ''}
+      freeShippingThreshold={freeShippingThreshold}
+      minOrderAmount={minOrderAmount}
     />
   )
 }

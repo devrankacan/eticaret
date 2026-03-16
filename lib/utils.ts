@@ -70,8 +70,10 @@ export const ORDER_STATUS_COLORS: Record<string, string> = {
 }
 
 export const PAYMENT_LABELS: Record<string, string> = {
-  credit_card:      'Kredi Kartı',
-  bank_transfer:    'Havale/EFT',
-  halkbank:         'Halk Bankası (Havale/EFT)',
-  cash_on_delivery: 'Kapıda Ödeme',
+  credit_card:           'Kredi Kartı',
+  bank_transfer:         'Havale/EFT',
+  halkbank:              'Halk Bankası (Havale/EFT)',
+  cash_on_delivery:      'Kapıda Ödeme',
+  cash_on_delivery_cash: 'Kapıda Nakit Ödeme',
+  cash_on_delivery_card: 'Kapıda Kredi Kartı',
 }

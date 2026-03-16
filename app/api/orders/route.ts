@@ -65,9 +65,26 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Ayarları çek
+  const settingRows = await prisma.setting.findMany({
+    where: { key: { in: ['min_order_amount', 'free_shipping_threshold'] } },
+  })
+  const settingsMap = Object.fromEntries(settingRows.map(s => [s.key, s.value ?? '']))
+  const minOrderAmount = parseFloat(settingsMap.min_order_amount || '0') || 0
+  const freeShippingThreshold = parseFloat(settingsMap.free_shipping_threshold || '0') || 0
+
   // Fiyat hesaplama
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-  const shippingCost = subtotal >= 500 ? 0 : 39.9
+
+  // Minimum sipariş tutarı kontrolü
+  if (minOrderAmount > 0 && subtotal < minOrderAmount) {
+    return NextResponse.json(
+      { error: `Minimum sipariş tutarı ${minOrderAmount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺'dir. Sepetinize ürün ekleyiniz.` },
+      { status: 400 }
+    )
+  }
+
+  const shippingCost = (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) ? 0 : 250
 
   // Kupon
   let discountAmount = 0
@@ -144,7 +161,8 @@ export async function POST(req: NextRequest) {
 
   // Kredi kartı ödemesinde sepeti henüz silme — ödeme callback'de silinecek
   // (3D Secure başarısız olursa kullanıcı tekrar deneyebilsin)
-  if (paymentMethod !== 'credit_card') {
+  const isCreditCard = paymentMethod === 'credit_card'
+  if (!isCreditCard) {
     await prisma.cartItem.deleteMany({ where: deleteKey })
   }
 
