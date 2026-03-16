@@ -1487,38 +1487,40 @@ input, select, textarea {
   position: relative;
   z-index: 2;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 32px;
-  text-align: center;
+  justify-content: space-between;
+  gap: 40px;
   padding: 60px 24px;
+  width: 100%;
 }
 .video-text {
   color: var(--white);
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-family: var(--font-body);
   line-height: 1.7;
+  max-width: 520px;
 }
-.video-text strong { color: var(--blue); }
+.video-text strong { font-weight: 700; }
 .video-play-btn {
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  border: 3px solid var(--white);
+  background: var(--blue);
+  border: none;
   color: var(--white);
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background .25s, transform .25s;
-  padding-left: 4px; /* optical center for play icon */
+  padding-left: 5px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 24px rgba(41,168,224,0.5);
 }
 .video-play-btn:hover {
-  background: var(--blue);
-  border-color: var(--blue);
+  background: var(--blue-dark);
   transform: scale(1.1);
 }
 
@@ -1568,7 +1570,8 @@ input, select, textarea {
 }
 
 @media (max-width: 768px) {
-  .video-section { min-height: 320px; }
+  .video-section { min-height: 280px; }
+  .video-content { flex-direction: row; gap: 24px; padding: 40px 20px; }
   .video-text { font-size: 1rem; }
   .video-play-btn { width: 60px; height: 60px; font-size: 1.3rem; }
 }

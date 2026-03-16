@@ -186,21 +186,24 @@
   </section>
 
   <!-- VIDEO SECTION -->
-  <section class="section video-embed-section" id="cyberglad-video">
-    <div class="container">
-      <div class="video-embed-inner">
-        <div class="video-embed-text">
-          <p>Managing the <strong>caravan</strong>, from setup to takedown, is remarkably <strong>hassle-free</strong>.</p>
-        </div>
-        <div class="video-embed-frame">
-          <iframe
-            src="https://www.youtube.com/embed/VPEnipL_oeI?rel=0&modestbranding=1"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-            title="GEM Outdoor – Product Video">
-          </iframe>
-        </div>
+  <section class="section video-section" id="cyberglad-video">
+    <div class="video-bg">
+      <img src="https://peru-dragonfly-236453.hostingersite.com/wp-content/uploads/2025/11/gorsel_2025-11-09_162807841-1024x480.png" alt="" />
+    </div>
+    <div class="video-overlay"></div>
+    <div class="video-content container">
+      <div class="video-text">
+        <p>Managing the <strong>caravan</strong>, from<br />setup to takedown, is<br />remarkably <strong>hassle-free</strong>.</p>
+      </div>
+      <button class="video-play-btn" id="videoPlayBtn" aria-label="Play video">
+        <i class="fa-solid fa-play"></i>
+      </button>
+    </div>
+    <div class="video-modal" id="videoModal">
+      <div class="modal-backdrop" id="modalBackdrop"></div>
+      <div class="modal-content">
+        <button class="modal-close" id="modalClose"><i class="fa-solid fa-xmark"></i></button>
+        <iframe id="modalIframe" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen title="Product Video"></iframe>
       </div>
     </div>
   </section>
