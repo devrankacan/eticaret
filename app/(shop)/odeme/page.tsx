@@ -33,8 +33,11 @@ export default async function OdemePage() {
     redirect('/sepet')
   }
 
-  // Ayarları çek
-  const settings = await getAllSettings()
+  // Ayarları çek (kargo eşiği cache bypass ile direkt DB'den)
+  const [settings, shippingSetting] = await Promise.all([
+    getAllSettings(),
+    prisma.setting.findUnique({ where: { key: 'free_shipping_threshold' } }),
+  ])
   const bankInfo = {
     bank_name: settings.bank_name || '',
     bank_iban: settings.bank_iban || '',
@@ -42,7 +45,7 @@ export default async function OdemePage() {
     bank_branch: settings.bank_branch || '',
   }
   const paymentEnabled = settings.payment_enabled === '1' && !!settings.payment_provider
-  const freeShippingThreshold = parseFloat(settings.free_shipping_threshold || '3500') || 3500
+  const freeShippingThreshold = parseFloat(shippingSetting?.value || '3500') || 3500
   const minOrderAmount = parseFloat(settings.min_order_amount || '0') || 0
 
   // Serileştirilebilir veri hazırla
