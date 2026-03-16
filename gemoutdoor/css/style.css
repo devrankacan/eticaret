@@ -576,7 +576,7 @@ img { max-width: 100%; height: auto; display: block; }
 /* Specs sidebar */
 .product-sidebar {}
 .specs-card {
-  background: var(--dark);
+  background: #f0f2f4;
   border-radius: var(--radius);
   overflow: hidden;
   margin-bottom: 20px;
@@ -591,13 +591,13 @@ img { max-width: 100%; height: auto; display: block; }
   text-transform: uppercase; color: var(--white);
 }
 .specs-table { width: 100%; }
-.specs-table tr { border-bottom: 1px solid #1e1e1e; }
+.specs-table tr { border-bottom: 1px solid #dde0e4; }
 .specs-table tr:last-child { border-bottom: none; }
 .specs-table td {
   padding: 11px 20px; font-size: 0.82rem;
 }
-.specs-table td:first-child { color: #888; font-weight: 500; }
-.specs-table td:last-child { color: var(--white); font-weight: 600; text-align: right; }
+.specs-table td:first-child { color: #666; font-weight: 500; }
+.specs-table td:last-child { color: #1a1a1a; font-weight: 600; text-align: right; }
 
 .price-card {
   background: var(--gray-bg);
