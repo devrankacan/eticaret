@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import SepetClient from './SepetClient'
 
+export const dynamic = 'force-dynamic'
+
 export default async function SepetPage() {
   const [shippingSetting, minOrderSetting] = await Promise.all([
     prisma.setting.findUnique({ where: { key: 'free_shipping_threshold' } }),
