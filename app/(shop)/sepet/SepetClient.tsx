@@ -27,7 +27,7 @@ interface CartItem {
   } | null
 }
 
-export default function SepetClient({ freeShippingThreshold }: { freeShippingThreshold: number }) {
+export default function SepetClient() {
   const { refreshCart } = useCart()
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -88,8 +88,7 @@ export default function SepetClient({ freeShippingThreshold }: { freeShippingThr
 
   const getItemPrice = (item: CartItem) => item.variation ? item.variation.price : item.product.price
   const subtotal = items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0)
-  const shippingCost = (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) ? 0 : 250
-  const total = subtotal - discount + shippingCost
+  const total = subtotal - discount
 
   if (loading) {
     return (
@@ -263,15 +262,6 @@ export default function SepetClient({ freeShippingThreshold }: { freeShippingThr
                   <span>İndirim</span>
                   <span>-{discount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL</span>
                 </div>
-              )}
-              <div className="flex justify-between text-gray-500">
-                <span>Kargo</span>
-                <span>{shippingCost > 0 ? `${shippingCost.toFixed(2)} TL` : 'Ücretsiz'}</span>
-              </div>
-              {shippingCost > 0 && freeShippingThreshold > 0 && (
-                <p className="text-xs text-primary-600">
-                  {(freeShippingThreshold - subtotal).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL daha ekleyin, kargo ücretsiz!
-                </p>
               )}
               <div className="flex justify-between font-bold text-gray-900 text-base border-t pt-3 mt-1">
                 <span>Toplam</span>
