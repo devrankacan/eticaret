@@ -18,12 +18,36 @@
   var menu   = document.getElementById('navMenu');
   var spans  = toggle.querySelectorAll('span');
 
+  // Inject close button inside the menu overlay
+  var closeLi = document.createElement('li');
+  closeLi.className = 'nav-close-item';
+  closeLi.innerHTML = '<button class="nav-close" aria-label="Menüyü kapat"><i class="fa-solid fa-xmark"></i></button>';
+  menu.insertBefore(closeLi, menu.firstChild);
+  var navCloseBtn = closeLi.querySelector('.nav-close');
+
+  function openMenu() {
+    menu.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
+    spans[1].style.opacity   = '0';
+    spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeMenu() {
+    menu.classList.remove('open');
+    document.body.style.overflow = '';
+    spans[0].style.transform = '';
+    spans[1].style.opacity   = '';
+    spans[2].style.transform = '';
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
   toggle.addEventListener('click', function () {
-    var isOpen = menu.classList.toggle('open');
-    spans[0].style.transform = isOpen ? 'rotate(45deg) translate(5px, 5px)' : '';
-    spans[1].style.opacity   = isOpen ? '0' : '';
-    spans[2].style.transform = isOpen ? 'rotate(-45deg) translate(5px, -5px)' : '';
+    menu.classList.contains('open') ? closeMenu() : openMenu();
   });
+
+  navCloseBtn.addEventListener('click', closeMenu);
 
   // Mobile: level-1 dropdown toggle
   document.querySelectorAll('.nav-item.has-dropdown > .nav-link').forEach(function (link) {
@@ -45,10 +69,23 @@
     });
   });
 
+  // Close on outside click
   document.addEventListener('click', function (e) {
     if (!menu.contains(e.target) && !toggle.contains(e.target)) {
-      menu.classList.remove('open');
+      closeMenu();
     }
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+  });
+
+  // Close menu when a non-dropdown link is tapped
+  menu.querySelectorAll('.nav-link:not([data-has-dropdown])').forEach(function (link) {
+    link.addEventListener('click', function () {
+      if (window.innerWidth <= 768 && !this.closest('.has-dropdown')) closeMenu();
+    });
   });
 })();
 
