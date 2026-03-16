@@ -272,13 +272,11 @@ export default function SepetClient({ freeShippingThreshold, minOrderAmount }: {
               )}
               <div className="flex justify-between text-gray-500">
                 <span>Kargo</span>
-                <span>{shippingCost > 0 ? `${shippingCost.toFixed(2)} TL` : 'Ücretsiz'}</span>
+                <span>{shippingCost > 0 ? `${shippingCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL` : 'Ücretsiz'}</span>
               </div>
-              {freeShippingThreshold > 0 && (
-                <p className="text-xs text-primary-600">
-                  {subtotal >= freeShippingThreshold
-                    ? 'Kargo ücretsiz!'
-                    : `${freeShippingThreshold.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ ve üzeri alışverişlerde kargo ücretsiz`}
+              {shippingCost > 0 && freeShippingThreshold > 0 && (
+                <p className="text-xs text-blue-600">
+                  {freeShippingThreshold.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ ve üzeri alışverişlerde kargo ücretsiz
                 </p>
               )}
               <div className="flex justify-between font-bold text-gray-900 text-base border-t pt-3 mt-1">
