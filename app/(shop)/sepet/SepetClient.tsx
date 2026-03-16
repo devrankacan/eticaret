@@ -27,7 +27,7 @@ interface CartItem {
   } | null
 }
 
-export default function SepetClient() {
+export default function SepetClient({ freeShippingThreshold, minOrderAmount }: { freeShippingThreshold: number; minOrderAmount: number }) {
   const { refreshCart } = useCart()
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -88,7 +88,14 @@ export default function SepetClient() {
 
   const getItemPrice = (item: CartItem) => item.variation ? item.variation.price : item.product.price
   const subtotal = items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0)
-  const total = subtotal - discount
+  const shippingCost = (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) ? 0 : 250
+  const total = subtotal - discount + shippingCost
+  const belowMinOrder = minOrderAmount > 0 && subtotal < minOrderAmount
+  const deliveryDate = (() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 3)
+    return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })
+  })()
 
   if (loading) {
     return (
@@ -263,15 +270,41 @@ export default function SepetClient() {
                   <span>-{discount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL</span>
                 </div>
               )}
+              <div className="flex justify-between text-gray-500">
+                <span>Kargo</span>
+                <span>{shippingCost > 0 ? `${shippingCost.toFixed(2)} TL` : 'Ücretsiz'}</span>
+              </div>
+              {freeShippingThreshold > 0 && (
+                <p className="text-xs text-primary-600">
+                  {subtotal >= freeShippingThreshold
+                    ? 'Kargo ücretsiz!'
+                    : `${freeShippingThreshold.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ ve üzeri alışverişlerde kargo ücretsiz`}
+                </p>
+              )}
               <div className="flex justify-between font-bold text-gray-900 text-base border-t pt-3 mt-1">
                 <span>Toplam</span>
                 <span>{total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL</span>
               </div>
             </div>
 
+            <div className="mt-3 flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-3 py-2">
+              <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <p className="text-xs text-green-700">
+                Tahmini Teslimat: <strong>{deliveryDate}</strong>
+              </p>
+            </div>
+
+            {belowMinOrder && (
+              <div className="mt-2 bg-orange-50 border border-orange-200 rounded-xl px-3 py-2 text-xs text-orange-700">
+                Minimum sipariş tutarı <strong>{minOrderAmount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</strong>'dir. Sepetinize daha fazla ürün ekleyiniz.
+              </div>
+            )}
+
             <Link
               href="/odeme"
-              className="mt-5 w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2"
+              className="mt-3 w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2"
             >
               Siparişi Tamamla
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
