@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact – Hotomobil USA Truck Campers</title>
+  <meta name="description" content="Contact GEM Outdoor / Hotomobil USA. Request a quote, ask about compatibility, or register your interest in a truck camper model." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar solid" id="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo"><img src="https://peru-dragonfly-236453.hostingersite.com/wp-content/uploads/2025/11/logo-beyaz.png" alt="GEM Outdoor" /></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      <ul class="nav-menu" id="navMenu">
+        <li class="nav-item"><a href="index.html" class="nav-link">HOME</a></li>
+        <li class="nav-item has-dropdown">
+          <a href="truck-campers.html" class="nav-link">TRUCK CAMPERS <i class="fa-solid fa-chevron-down"></i></a>
+          <ul class="dropdown">
+            <li><a href="gladiator-xl.html">Gladiator XL</a></li>
+            <li><a href="cyberglad-premium.html">Cyberglad Premium</a></li>
+            <li><a href="gladiator-s-premium.html">Gladiator S Premium</a></li>
+            <li><a href="gladiator-xle.html">Gladiator XLE</a></li>
+            <li><a href="gladiator-l.html">Gladiator L</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a href="compatible-trucks.html" class="nav-link">COMPATIBLE TRUCKS</a></li>
+        <li class="nav-item"><a href="about.html" class="nav-link">ABOUT HOTOMOBIL</a></li>
+        <li class="nav-item"><a href="contact.html" class="nav-link">CONTACT</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="page-hero">
+    <div class="page-hero-bg"><img src="https://peru-dragonfly-236453.hostingersite.com/wp-content/uploads/2025/11/gorsel_2025-11-09_162807841.png" alt="" /></div>
+    <div class="page-hero-overlay"></div>
+    <div class="page-hero-content container">
+      <p class="breadcrumb"><a href="index.html">Home</a><span>/</span>Contact</p>
+      <h1>Contact Us</h1>
+      <p>Request a quote, ask about compatibility, or register your interest.</p>
+    </div>
+  </section>
+
+  <section class="contact-page">
+    <div class="container">
+      <div class="contact-layout">
+
+        <div class="contact-form-col">
+          <h2 class="contact-form-title">Send Us a Message</h2>
+          <p class="contact-form-subtitle">Fill out the form below and we'll get back to you as soon as possible.</p>
+
+          <div id="formSuccess" class="form-success" style="display:none;">
+            <i class="fa-solid fa-circle-check"></i>
+            <p>Your message has been sent. We'll be in touch shortly.</p>
+          </div>
+          <div id="formError" class="form-error" style="display:none;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <p>Something went wrong. Please try again or email us directly.</p>
+          </div>
+
+          <form id="contactForm" class="contact-form" action="contact-handler.php" method="POST" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="fullName">Full Name <span class="required">*</span></label>
+                <input type="text" id="fullName" name="fullName" placeholder="John Smith" required />
+              </div>
+              <div class="form-group">
+                <label for="email">Email Address <span class="required">*</span></label>
+                <input type="email" id="email" name="email" placeholder="john@example.com" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" placeholder="(555) 000-0000" />
+              </div>
+              <div class="form-group">
+                <label for="cityState">City / State <span class="required">*</span></label>
+                <input type="text" id="cityState" name="cityState" placeholder="Denver, CO" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="truckMake">Truck Make</label>
+                <input type="text" id="truckMake" name="truckMake" placeholder="e.g. Ford, Ram, Toyota" />
+              </div>
+              <div class="form-group">
+                <label for="truckModel">Truck Model</label>
+                <input type="text" id="truckModel" name="truckModel" placeholder="e.g. F-150, Tacoma, Ram 1500" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bedLength">Truck Bed Length</label>
+                <select id="bedLength" name="bedLength">
+                  <option value="">Select bed length</option>
+                  <option value="5 ft (short bed)">5 ft (short bed)</option>
+                  <option value="5.5 ft">5.5 ft</option>
+                  <option value="6 ft">6 ft</option>
+                  <option value="6.5 ft">6.5 ft</option>
+                  <option value="8 ft (long bed)">8 ft (long bed)</option>
+                  <option value="Not sure">Not sure</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="camperModel">Camper Model of Interest</label>
+                <select id="camperModel" name="camperModel">
+                  <option value="">Select a model</option>
+                  <option value="Gladiator XL">Gladiator XL</option>
+                  <option value="Gladiator XLE">Gladiator XLE</option>
+                  <option value="Gladiator S Premium">Gladiator S Premium</option>
+                  <option value="Gladiator L">Gladiator L</option>
+                  <option value="Cyberglad Premium">Cyberglad Premium</option>
+                  <option value="Not sure yet">Not sure yet</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group form-group-full">
+              <label for="message">Message <span class="required">*</span></label>
+              <textarea id="message" name="message" rows="5" placeholder="Tell us about your truck, how you plan to use your camper, and any questions you have." required></textarea>
+            </div>
+            <div class="form-submit">
+              <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                <span class="btn-text">Send Message</span>
+                <span class="btn-loading" style="display:none;"><i class="fa-solid fa-spinner fa-spin"></i> Sending...</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="contact-info-col">
+          <div class="contact-info-card">
+            <h3>Get in Touch</h3>
+            <div class="contact-info-item">
+              <i class="fa-solid fa-envelope"></i>
+              <div>
+                <p class="contact-info-label">Email</p>
+                <a href="mailto:ebruinal@gemtruckcamper.com">ebruinal@gemtruckcamper.com</a>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <i class="fa-solid fa-clock"></i>
+              <div>
+                <p class="contact-info-label">Response Time</p>
+                <p>We respond within 1–2 business days.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="contact-models-card">
+            <h3>Not Sure Which Model?</h3>
+            <p>Use our truck compatibility guide or browse all models to find the right fit.</p>
+            <a href="compatible-trucks.html" class="btn btn-secondary">Compatible Trucks Guide</a>
+            <a href="truck-campers.html" class="btn btn-secondary" style="margin-top:10px;">View All Models</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-instagram"><a href="https://instagram.com" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i> Follow us on Instagram</a></div>
+    <div class="footer-main">
+      <div class="footer-logo-col"><a href="index.html"><img src="https://peru-dragonfly-236453.hostingersite.com/wp-content/uploads/2025/11/logo-beyaz.png" alt="GEM Outdoor" class="footer-logo" /></a><p class="footer-tagline">Premium truck campers engineered for American pickup trucks.</p></div>
+      <div class="footer-col"><h4>Truck Campers</h4><ul><li><a href="gladiator-xl.html">Gladiator XL</a></li><li><a href="cyberglad-premium.html">Cyberglad Premium</a></li><li><a href="gladiator-s-premium.html">Gladiator S Premium</a></li><li><a href="gladiator-xle.html">Gladiator XLE</a></li><li><a href="gladiator-l.html">Gladiator L</a></li></ul></div>
+      <div class="footer-col"><h4>Quick Links</h4><ul><li><a href="truck-campers.html">All Models</a></li><li><a href="compatible-trucks.html">Compatible Trucks</a></li><li><a href="about.html">About Hotomobil</a></li><li><a href="contact.html">Contact Us</a></li></ul></div>
+      <div class="footer-col footer-contact-col"><h4>Contact</h4><p><i class="fa-solid fa-envelope"></i><a href="mailto:info@gemoutdoor.com">info@gemoutdoor.com</a></p><div class="footer-socials"><a href="#"><i class="fa-brands fa-facebook-f"></i></a><a href="#"><i class="fa-brands fa-instagram"></i></a><a href="#"><i class="fa-brands fa-youtube"></i></a></div></div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2024 GEM Outdoor / Hotomobil USA. All rights reserved.</p></div>
+  </footer>
+  <script src="js/main.js"></script>
+  <script>
+    // Pre-select camper model from URL param
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var model  = params.get('model');
+      if (model) {
+        var sel = document.getElementById('camperModel');
+        for (var i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === model) { sel.selectedIndex = i; break; }
+        }
+      }
+    })();
+
+    // AJAX form submission
+    (function () {
+      var form      = document.getElementById('contactForm');
+      var submitBtn = document.getElementById('submitBtn');
+      var btnText   = submitBtn.querySelector('.btn-text');
+      var btnLoad   = submitBtn.querySelector('.btn-loading');
+      var success   = document.getElementById('formSuccess');
+      var error     = document.getElementById('formError');
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+
+        btnText.style.display = 'none';
+        btnLoad.style.display = 'inline';
+        submitBtn.disabled    = true;
+        success.style.display = 'none';
+        error.style.display   = 'none';
+
+        var data = new FormData(form);
+        fetch('contact-handler.php', { method: 'POST', body: data })
+          .then(function (res) { return res.json(); })
+          .then(function (json) {
+            if (json.success) {
+              form.reset();
+              success.style.display = 'flex';
+              success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+              error.style.display = 'flex';
+            }
+          })
+          .catch(function () { error.style.display = 'flex'; })
+          .finally(function () {
+            btnText.style.display = 'inline';
+            btnLoad.style.display = 'none';
+            submitBtn.disabled    = false;
+          });
+      });
+    })();
+  </script>
+</body>
+</html>
