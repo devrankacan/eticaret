@@ -36,11 +36,17 @@ export default function SepetPage() {
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState('')
   const [discount, setDiscount] = useState(0)
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState(0)
 
   const fetchCart = useCallback(async () => {
-    const res = await fetch('/api/cart')
-    const data = await res.json()
-    setItems(data.items || [])
+    const [cartRes, settingsRes] = await Promise.all([
+      fetch('/api/cart'),
+      fetch('/api/settings'),
+    ])
+    const cartData = await cartRes.json()
+    const settingsData = await settingsRes.json()
+    setItems(cartData.items || [])
+    setFreeShippingThreshold(parseFloat(settingsData.free_shipping_threshold || '0') || 0)
     setLoading(false)
   }, [])
 
@@ -88,7 +94,7 @@ export default function SepetPage() {
 
   const getItemPrice = (item: CartItem) => item.variation ? item.variation.price : item.product.price
   const subtotal = items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0)
-  const shippingCost = subtotal >= 500 ? 0 : 250
+  const shippingCost = (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) ? 0 : 250
   const total = subtotal - discount + shippingCost
 
   if (loading) {
@@ -268,9 +274,9 @@ export default function SepetPage() {
                 <span>Kargo</span>
                 <span>{shippingCost > 0 ? `${shippingCost.toFixed(2)} TL` : 'Ücretsiz'}</span>
               </div>
-              {shippingCost > 0 && (
+              {shippingCost > 0 && freeShippingThreshold > 0 && (
                 <p className="text-xs text-primary-600">
-                  {(500 - subtotal).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL daha ekleyin, kargo ücretsiz!
+                  {(freeShippingThreshold - subtotal).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL daha ekleyin, kargo ücretsiz!
                 </p>
               )}
               <div className="flex justify-between font-bold text-gray-900 text-base border-t pt-3 mt-1">
