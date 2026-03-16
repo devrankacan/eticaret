@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       { key: 'seo_title',                value: 'Doğal Lezzet | Organik & Doğal Ürünler', group: 'seo' },
       { key: 'seo_description',          value: 'En kaliteli doğal bal, peynir, tereyağı ve organik gıda ürünleri.', group: 'seo' },
       { key: 'meta_description',         value: 'En kaliteli doğal bal, peynir, tereyağı ve organik gıda ürünleri.', group: 'seo' },
-      { key: 'free_shipping_threshold',  value: '500',  group: 'shipping' },
+      { key: 'free_shipping_threshold',  value: '3500', group: 'shipping' },
       { key: 'bank_transfer_enabled',    value: '1',    group: 'payment' },
       { key: 'cash_on_delivery_enabled', value: '1',    group: 'payment' },
       { key: 'cash_on_delivery_fee',     value: '0',    group: 'payment' },

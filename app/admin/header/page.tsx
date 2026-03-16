@@ -21,7 +21,7 @@ export default function HeaderAyarlariPage() {
         setAnnouncementText(data.announcement_text || 'Aynı Gün İçerisinde Kargoların Gönderimi Yapılmaktadır.')
         setAnnouncementEnabled(data.announcement_enabled !== '0')
         setFreeShippingText(data.free_shipping_text || 'Ücretsiz Kargo')
-        setFreeShippingThreshold(data.free_shipping_threshold || '500')
+        setFreeShippingThreshold(data.free_shipping_threshold || '3500')
         try {
           const items = JSON.parse(data.nav_extra_items || '[]')
           setNavItems(Array.isArray(items) ? items : [])

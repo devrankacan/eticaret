@@ -46,7 +46,7 @@ export default function SepetPage() {
     const cartData = await cartRes.json()
     const settingsData = await settingsRes.json()
     setItems(cartData.items || [])
-    setFreeShippingThreshold(parseFloat(settingsData.free_shipping_threshold || '0') || 0)
+    setFreeShippingThreshold(parseFloat(settingsData.free_shipping_threshold || '3500') || 3500)
     setLoading(false)
   }, [])
 

@@ -42,7 +42,7 @@ export default async function OdemePage() {
     bank_branch: settings.bank_branch || '',
   }
   const paymentEnabled = settings.payment_enabled === '1' && !!settings.payment_provider
-  const freeShippingThreshold = parseFloat(settings.free_shipping_threshold || '0') || 0
+  const freeShippingThreshold = parseFloat(settings.free_shipping_threshold || '3500') || 3500
   const minOrderAmount = parseFloat(settings.min_order_amount || '0') || 0
 
   // Serileştirilebilir veri hazırla
