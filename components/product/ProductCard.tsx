@@ -54,7 +54,9 @@ export function ProductCard({ product, className = '' }: Props) {
         body: JSON.stringify({ productId: product.id, quantity: 1 }),
       })
       if (res.ok) {
-        addToast(`"${product.name}" sepete eklendi!`)
+        const data = await res.json()
+        const label = data.variationName ? `"${product.name}" (${data.variationName})` : `"${product.name}"`
+        addToast(`${label} sepete eklendi!`)
         refreshCart()
       } else {
         addToast('Ürün eklenemedi.', 'error')

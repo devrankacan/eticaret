@@ -51,12 +51,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Ürün bulunamadı' }, { status: 404 })
   }
 
-  // Varyasyonlu ürün kontrolü
+  // Varyasyonlu ürün
   if (product.hasVariations) {
-    if (!variationId) {
-      return NextResponse.json({ error: 'Seçenek seçimi gerekli' }, { status: 400 })
+    let resolvedVariationId = variationId
+
+    // variationId gelmemişse: önce isDefault, sonra en düşük fiyat (en küçük boyut)
+    if (!resolvedVariationId) {
+      const defaultVariation = await prisma.productVariation.findFirst({
+        where: { productId, stock: { gt: 0 } },
+        orderBy: [{ isDefault: 'desc' }, { price: 'asc' }, { sortOrder: 'asc' }],
+      })
+      if (!defaultVariation) {
+        return NextResponse.json({ error: 'Stokta ürün yok' }, { status: 400 })
+      }
+      resolvedVariationId = defaultVariation.id
     }
-    const variation = await prisma.productVariation.findUnique({ where: { id: variationId } })
+
+    const variation = await prisma.productVariation.findUnique({ where: { id: resolvedVariationId } })
     if (!variation || variation.productId !== productId) {
       return NextResponse.json({ error: 'Geçersiz seçenek' }, { status: 400 })
     }
@@ -64,33 +75,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Bu seçenek stokta yok' }, { status: 400 })
     }
 
-    // Aynı ürün+varyasyon varsa miktarı artır
-    const existing = await prisma.cartItem.findFirst({ where: { ...key, productId, variationId } })
+    const existing = await prisma.cartItem.findFirst({ where: { ...key, productId, variationId: resolvedVariationId } })
     if (existing) {
       const newQty = Math.min(existing.quantity + quantity, variation.stock)
       await prisma.cartItem.update({ where: { id: existing.id }, data: { quantity: newQty } })
     } else {
       await prisma.cartItem.create({
-        data: { ...key, productId, variationId, quantity: Math.min(quantity, variation.stock) },
+        data: { ...key, productId, variationId: resolvedVariationId, quantity: Math.min(quantity, variation.stock) },
       })
     }
-  } else {
-    // Basit ürün
-    if (product.stock <= 0) {
-      return NextResponse.json({ error: 'Ürün stokta yok' }, { status: 400 })
+
+    const response = NextResponse.json({ success: true, variationName: variation.name })
+    if (!session?.user && 'sessionId' in key) {
+      response.cookies.set('cart_session', key.sessionId!, { httpOnly: true, maxAge: 60 * 60 * 24 * 30 })
     }
-    const existing = await prisma.cartItem.findFirst({ where: { ...key, productId } })
-    if (existing) {
-      const newQty = Math.min(existing.quantity + quantity, product.stock)
-      await prisma.cartItem.update({ where: { id: existing.id }, data: { quantity: newQty } })
-    } else {
-      await prisma.cartItem.create({
-        data: { ...key, productId, quantity: Math.min(quantity, product.stock) },
-      })
-    }
+    return response
   }
 
-  const response = NextResponse.json({ success: true })
+  // Basit ürün
+  if (product.stock <= 0) {
+    return NextResponse.json({ error: 'Ürün stokta yok' }, { status: 400 })
+  }
+  const existing = await prisma.cartItem.findFirst({ where: { ...key, productId } })
+  if (existing) {
+    const newQty = Math.min(existing.quantity + quantity, product.stock)
+    await prisma.cartItem.update({ where: { id: existing.id }, data: { quantity: newQty } })
+  } else {
+    await prisma.cartItem.create({
+      data: { ...key, productId, quantity: Math.min(quantity, product.stock) },
+    })
+  }
+
+  const response = NextResponse.json({ success: true, variationName: null })
   if (!session?.user && 'sessionId' in key) {
     response.cookies.set('cart_session', key.sessionId!, { httpOnly: true, maxAge: 60 * 60 * 24 * 30 })
   }
