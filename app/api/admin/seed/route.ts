@@ -25,20 +25,27 @@ export async function GET(req: NextRequest) {
     results.push('✅ Admin kullanıcısı')
 
     // Site ayarları
+    const contactBranches = JSON.stringify([
+      { id: '1', name: 'Esenyurt Şubesi', address: 'Saadetdere, Fevzi Çakmak Cd. No:9 D:11B, 34899 Esenyurt/İstanbul', phone: '02126905036', hours: '09:00-21:00' },
+      { id: '2', name: 'Avcılar Şubesi',  address: 'Üniversite, Uran Cd. No:11, 34320 Avcılar/İstanbul',               phone: '02126905036', hours: '09:00-21:00' },
+    ])
     const settings = [
-      { key: 'site_name',                value: 'Doğal Lezzet',          group: 'general' },
-      { key: 'site_logo',                value: '',                       group: 'general' },
-      { key: 'site_phone',               value: '0212 555 44 33',         group: 'contact' },
-      { key: 'site_email',               value: 'info@dogallezzet.com',   group: 'contact' },
-      { key: 'site_whatsapp',            value: '905551234567',           group: 'contact' },
-      { key: 'site_address',             value: 'Atatürk Cad. No:12\nBeyoğlu / İstanbul', group: 'contact' },
-      { key: 'about_text',               value: '2010 yılından bu yana doğal ve organik gıda ürünlerini sizlerle buluşturuyoruz. Türkiye\'nin dört bir yanından özenle seçilmiş köy ürünleri, organik bal çeşitleri, geleneksel yöntemlerle üretilmiş peynirler ve doğal tereyağları ile sofralarınıza lezzet katıyoruz.\n\nTüm ürünlerimiz doğrudan üreticilerden temin edilmekte olup hiçbir katkı maddesi içermemektedir.', group: 'general' },
-      { key: 'social_instagram',         value: 'https://instagram.com',  group: 'social' },
-      { key: 'social_facebook',          value: 'https://facebook.com',   group: 'social' },
-      { key: 'seo_title',                value: 'Doğal Lezzet | Organik & Doğal Ürünler', group: 'seo' },
+      { key: 'site_name',                value: 'Ateşoğlu Süt ve Süt Ürünleri', group: 'general' },
+      { key: 'site_logo',                value: '',                              group: 'general' },
+      { key: 'site_phone',               value: '0537 779 0489',                group: 'contact' },
+      { key: 'site_email',               value: 'info@atesoglusut.com',          group: 'contact' },
+      { key: 'site_whatsapp',            value: '905385735075',                  group: 'contact' },
+      { key: 'site_address',             value: 'Kubilaybey Mahallesi, Kars caddesi No:4, 75700 Göle/Ardahan', group: 'contact' },
+      { key: 'contact_center_hours',     value: '09:00-21:00',                  group: 'contact' },
+      { key: 'contact_branches',         value: contactBranches,                group: 'contact' },
+      { key: 'about_text',               value: 'Ateşoğlu Süt ve Süt Ürünleri olarak Göle/Ardahan\'dan sofralarınıza en kaliteli ve doğal ürünleri ulaştırıyoruz. Geleneksel yöntemlerle üretilen peynirlerimiz, tereyağlarımız ve doğal ürünlerimizle her zaman yanınızdayız.', group: 'general' },
+      { key: 'social_instagram',         value: 'https://www.instagram.com/atesoglu.sut/', group: 'social' },
+      { key: 'social_facebook',          value: 'https://www.facebook.com/profile.php?id=61574833545804&locale=tr_TR', group: 'social' },
+      { key: 'seo_title',                value: 'Ateşoğlu Süt ve Süt Ürünleri', group: 'seo' },
       { key: 'seo_description',          value: 'En kaliteli doğal bal, peynir, tereyağı ve organik gıda ürünleri.', group: 'seo' },
       { key: 'meta_description',         value: 'En kaliteli doğal bal, peynir, tereyağı ve organik gıda ürünleri.', group: 'seo' },
       { key: 'free_shipping_threshold',  value: '3500', group: 'shipping' },
+      { key: 'min_order_amount',         value: '999',  group: 'shipping' },
       { key: 'bank_transfer_enabled',    value: '1',    group: 'payment' },
       { key: 'cash_on_delivery_enabled', value: '1',    group: 'payment' },
       { key: 'cash_on_delivery_fee',     value: '0',    group: 'payment' },
