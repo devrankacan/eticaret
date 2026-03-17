@@ -17,6 +17,87 @@ interface SearchProduct {
   images: { imagePath: string }[]
 }
 
+function SearchBar() {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<SearchProduct[]>([])
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const debounceRef = useRef<NodeJS.Timeout>()
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const handleChange = useCallback((val: string) => {
+    setQuery(val)
+    clearTimeout(debounceRef.current)
+    if (val.trim().length < 2) { setResults([]); setOpen(false); return }
+    debounceRef.current = setTimeout(async () => {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(val)}`)
+      const data = await res.json()
+      setResults(data.products || [])
+      setOpen(true)
+    }, 300)
+  }, [])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (query.trim()) { setOpen(false); window.location.href = `/urunler?q=${encodeURIComponent(query)}` }
+  }
+
+  return (
+    <div ref={ref} className="relative w-full">
+      <form onSubmit={handleSubmit} className="flex items-center w-full border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-primary-300 transition">
+        <input
+          type="text"
+          value={query}
+          onChange={e => handleChange(e.target.value)}
+          onKeyDown={e => e.key === 'Escape' && setOpen(false)}
+          placeholder="Ürün aramaya başla"
+          className="flex-1 px-4 py-2.5 text-sm focus:outline-none bg-transparent"
+          autoComplete="off"
+        />
+        <button type="submit" className="px-4 py-2.5 text-gray-400 hover:text-primary-600 transition border-l border-gray-200">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </button>
+      </form>
+      {open && results.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-[100] overflow-hidden">
+          {results.map(p => (
+            <Link
+              key={p.id}
+              href={`/urunler/${p.slug}`}
+              onClick={() => { setOpen(false); setQuery('') }}
+              className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition"
+            >
+              {p.images[0] ? (
+                <Image src={p.images[0].imagePath} alt={p.name} width={36} height={36} className="rounded-lg object-cover w-9 h-9 flex-shrink-0" />
+              ) : (
+                <div className="w-9 h-9 bg-gray-100 rounded-lg flex-shrink-0" />
+              )}
+              <span className="flex-1 text-sm text-gray-800 truncate">{p.name}</span>
+              <span className="text-sm font-semibold text-primary-600 flex-shrink-0">{p.price.toLocaleString('tr-TR')} ₺</span>
+            </Link>
+          ))}
+          <Link
+            href={`/urunler?q=${encodeURIComponent(query)}`}
+            onClick={() => { setOpen(false); setQuery('') }}
+            className="block text-center text-xs text-primary-600 font-medium py-2.5 border-t border-gray-100 hover:bg-primary-50 transition"
+          >
+            Tüm sonuçları gör →
+          </Link>
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface Category {
   id: string
   name: string
@@ -46,12 +127,7 @@ export function Header({ categories, siteName, siteLogo, whatsapp, socialLinks, 
   const [loginOpen, setLoginOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const [scrolled, setScrolled] = useState(false)
-  const [searchResults, setSearchResults] = useState<SearchProduct[]>([])
-  const [searchOpen, setSearchOpen] = useState(false)
-  const searchRef = useRef<HTMLDivElement>(null)
-  const debounceRef = useRef<NodeJS.Timeout>()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -59,88 +135,10 @@ export function Header({ categories, siteName, siteLogo, whatsapp, socialLinks, 
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSearchOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  const handleSearchChange = useCallback((val: string) => {
-    setSearchQuery(val)
-    clearTimeout(debounceRef.current)
-    if (val.trim().length < 2) { setSearchResults([]); setSearchOpen(false); return }
-    debounceRef.current = setTimeout(async () => {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(val)}`)
-      const data = await res.json()
-      setSearchResults(data.products || [])
-      setSearchOpen(true)
-    }, 300)
-  }, [])
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      setSearchOpen(false)
-      window.location.href = `/urunler?q=${encodeURIComponent(searchQuery)}`
-    }
-  }
-
   const logo = siteLogo ? (
     <Image src={siteLogo} alt={siteName} width={130} height={44} className="h-11 w-auto object-contain" />
   ) : (
     <span className="text-[#3d1f08] font-bold text-xl tracking-wide">{siteName}</span>
-  )
-
-  const searchBar = (
-    <div ref={searchRef} className="relative w-full">
-      <form onSubmit={handleSearch} className="flex items-center w-full border border-gray-200 rounded-xl overflow-hidden bg-white hover:border-primary-300 transition">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={e => handleSearchChange(e.target.value)}
-          onKeyDown={e => e.key === 'Escape' && setSearchOpen(false)}
-          placeholder="Ürün aramaya başla"
-          className="flex-1 px-4 py-2.5 text-sm focus:outline-none bg-transparent"
-          autoComplete="off"
-        />
-        <button type="submit" className="px-4 py-2.5 text-gray-400 hover:text-primary-600 transition border-l border-gray-200">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
-      </form>
-      {searchOpen && searchResults.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-          {searchResults.map(p => (
-            <Link
-              key={p.id}
-              href={`/urun/${p.slug}`}
-              onClick={() => { setSearchOpen(false); setSearchQuery('') }}
-              className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition"
-            >
-              {p.images[0] ? (
-                <Image src={p.images[0].imagePath} alt={p.name} width={36} height={36} className="rounded-lg object-cover w-9 h-9 flex-shrink-0" />
-              ) : (
-                <div className="w-9 h-9 bg-gray-100 rounded-lg flex-shrink-0" />
-              )}
-              <span className="flex-1 text-sm text-gray-800 truncate">{p.name}</span>
-              <span className="text-sm font-semibold text-primary-600 flex-shrink-0">{p.price.toLocaleString('tr-TR')} ₺</span>
-            </Link>
-          ))}
-          <Link
-            href={`/urunler?q=${encodeURIComponent(searchQuery)}`}
-            onClick={() => { setSearchOpen(false); setSearchQuery('') }}
-            className="block text-center text-xs text-primary-600 font-medium py-2.5 border-t border-gray-100 hover:bg-primary-50 transition"
-          >
-            Tüm sonuçları gör →
-          </Link>
-        </div>
-      )}
-    </div>
   )
 
   return (
@@ -211,7 +209,7 @@ export function Header({ categories, siteName, siteLogo, whatsapp, socialLinks, 
 
             {/* Desktop: arama */}
             <div className="hidden lg:flex flex-1 mx-4">
-              {searchBar}
+              <SearchBar />
             </div>
 
             {/* Desktop: ücretsiz kargo bilgisi */}
@@ -276,7 +274,7 @@ export function Header({ categories, siteName, siteLogo, whatsapp, socialLinks, 
 
         {/* ══════════════ MOBİL ARAMA ══════════════ */}
         <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-2.5">
-          {searchBar}
+          <SearchBar />
         </div>
 
         {/* ══════════════ DESKTOP KATEGORİ NAV ══════════════ */}
