@@ -25,9 +25,9 @@ export async function GET(req: Request) {
     results[u.key] = u.value
   }
 
-  // CargoCompany tablosundaki eşiği de güncelle
+  // CargoCompany tablosundaki eşiği ve kargo ücretini güncelle
   await prisma.cargoCompany.updateMany({
-    data: { freeShippingThreshold: 3500 },
+    data: { freeShippingThreshold: 3500, baseShippingCost: 250 },
   })
 
   await revalidateSettings()
