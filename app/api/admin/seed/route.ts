@@ -25,40 +25,49 @@ export async function GET(req: NextRequest) {
     results.push('✅ Admin kullanıcısı')
 
     // Site ayarları
-    const contactBranches = JSON.stringify([
-      { id: '1', name: 'Esenyurt Şubesi', address: 'Saadetdere, Fevzi Çakmak Cd. No:9 D:11B, 34899 Esenyurt/İstanbul', phone: '02126905036', hours: '09:00-21:00' },
-      { id: '2', name: 'Avcılar Şubesi',  address: 'Üniversite, Uran Cd. No:11, 34320 Avcılar/İstanbul',               phone: '02126905036', hours: '09:00-21:00' },
-    ])
+    const aboutText = `Ateşoğlu: 1997'den Beri Doğallığın Markası\n1997 yılında başlayan lezzet yolculuğumuzda, ilk günkü tutkumuzla sofralarınıza doğallık katmaya devam ediyoruz. Ateşoğlu Süt Ürünleri olarak, kurulduğumuz günden bu yana misyonumuz; doğanın en saf lezzetlerini, kaliteden ödün vermeden sizlerle buluşturmaktır.\nBaşarımızın sırrı, geleneksel üretim yöntemlerine olan bağlılığımızda ve hijyene verdiğimiz önemde saklıdır. Köy peynirinden mis kokulu tereyağına, sütün en taze tadına kadar uzanan geniş ürün yelpazemizin tamamı, katkısız ve hijyenik koşullarda üretilmektedir. Her bir ürünümüzde, "Ateşoğlu kalitesini" sofralarınıza güvenle taşıyoruz.\nZengin süt ürünleri reyonlarımızın yanı sıra, özenle seçilmiş şarküteri çeşitleri, doğal bal, ev yapımı reçeller ve taze köy yumurtaları gibi yöresel lezzetlerle de damak tadınıza hitap ediyoruz.\nÇeyrek asrı aşan tecrübemizle, geleneksel lezzetleri modern ve sağlıklı bir anlayışla birleştiriyor, sofralarınızın vazgeçilmezi olmak için çalışıyoruz. Doğallıktan ve kaliteden yana olan herkesi Ateşoğlu lezzet dünyasını keşfetmeye davet ediyoruz.`
+
     const settings = [
-      { key: 'site_name',                value: 'Ateşoğlu Süt ve Süt Ürünleri', group: 'general' },
-      { key: 'site_logo',                value: '',                              group: 'general' },
-      { key: 'site_phone',               value: '0537 779 0489',                group: 'contact' },
-      { key: 'site_email',               value: 'info@atesoglusut.com',          group: 'contact' },
-      { key: 'site_whatsapp',            value: '905385735075',                  group: 'contact' },
-      { key: 'site_address',             value: 'Kubilaybey Mahallesi, Kars caddesi No:4, 75700 Göle/Ardahan', group: 'contact' },
-      { key: 'contact_center_hours',     value: '09:00-21:00',                  group: 'contact' },
-      { key: 'contact_branches',         value: contactBranches,                group: 'contact' },
-      { key: 'about_text',               value: 'Ateşoğlu Süt ve Süt Ürünleri olarak Göle/Ardahan\'dan sofralarınıza en kaliteli ve doğal ürünleri ulaştırıyoruz. Geleneksel yöntemlerle üretilen peynirlerimiz, tereyağlarımız ve doğal ürünlerimizle her zaman yanınızdayız.', group: 'general' },
-      { key: 'social_instagram',         value: 'https://www.instagram.com/atesoglu.sut/', group: 'social' },
-      { key: 'social_facebook',          value: 'https://www.facebook.com/profile.php?id=61574833545804&locale=tr_TR', group: 'social' },
-      { key: 'seo_title',                value: 'Ateşoğlu Süt ve Süt Ürünleri', group: 'seo' },
-      { key: 'seo_description',          value: 'En kaliteli doğal bal, peynir, tereyağı ve organik gıda ürünleri.', group: 'seo' },
-      { key: 'meta_description',         value: 'En kaliteli doğal bal, peynir, tereyağı ve organik gıda ürünleri.', group: 'seo' },
-      { key: 'free_shipping_threshold',  value: '3500', group: 'shipping' },
-      { key: 'min_order_amount',         value: '999',  group: 'shipping' },
-      { key: 'bank_transfer_enabled',    value: '1',    group: 'payment' },
-      { key: 'cash_on_delivery_enabled', value: '1',    group: 'payment' },
-      { key: 'cash_on_delivery_fee',     value: '0',    group: 'payment' },
-      { key: 'iyzico_enabled',           value: '0',    group: 'payment' },
-      { key: 'iyzico_api_key',           value: '',     group: 'payment' },
-      { key: 'iyzico_secret_key',        value: '',     group: 'payment' },
-      { key: 'iyzico_base_url',          value: 'https://sandbox-api.iyzipay.com', group: 'payment' },
+      { key: 'site_name',                value: 'Ateşoğlu Süt ve Süt Ürünleri',                                                            group: 'general' },
+      { key: 'site_logo',                value: 'https://sablonmarketi.com/wp-content/uploads/2025/09/logo-4.png',                          group: 'general' },
+      { key: 'about_text',               value: aboutText,                                                                                   group: 'general' },
+      { key: 'site_phone',               value: '0537 779 0489',                                                                            group: 'contact' },
+      { key: 'site_email',               value: 'info@atesoglusut.com',                                                                     group: 'contact' },
+      { key: 'site_whatsapp',            value: '905385735075',                                                                             group: 'contact' },
+      { key: 'site_address',             value: '',                                                                                          group: 'contact' },
+      { key: 'contact_center_hours',     value: '09:00-21:00',                                                                              group: 'contact' },
+      { key: 'contact_branches',         value: '[]',                                                                                       group: 'contact' },
+      { key: 'social_instagram',         value: 'https://www.instagram.com/atesoglu.sut/',                                                  group: 'social' },
+      { key: 'social_facebook',          value: 'https://www.facebook.com/profile.php?id=61574833545804&locale=tr_TR',                      group: 'social' },
+      { key: 'seo_title',                value: 'Ateşoğlu Süt ve Süt Ürünleri',                                                            group: 'seo' },
+      { key: 'seo_description',          value: 'En kaliteli doğal bal, peynir, tereyağı ve organik gıda ürünleri.',                        group: 'seo' },
+      { key: 'meta_description',         value: 'En kaliteli doğal bal, peynir, tereyağı ve organik gıda ürünleri.',                        group: 'seo' },
+      { key: 'free_shipping_threshold',  value: '3500',                                                                                     group: 'shipping' },
+      { key: 'min_order_amount',         value: '999',                                                                                      group: 'shipping' },
+      { key: 'bank_transfer_enabled',    value: '1',                                                                                        group: 'payment' },
+      { key: 'cash_on_delivery_enabled', value: '1',                                                                                        group: 'payment' },
+      { key: 'cash_on_delivery_fee',     value: '0',                                                                                        group: 'payment' },
+      { key: 'iyzico_enabled',           value: '0',                                                                                        group: 'payment' },
+      { key: 'iyzico_api_key',           value: '',                                                                                         group: 'payment' },
+      { key: 'iyzico_secret_key',        value: '',                                                                                         group: 'payment' },
+      { key: 'iyzico_base_url',          value: 'https://sandbox-api.iyzipay.com',                                                         group: 'payment' },
     ]
     for (const s of settings) {
       await prisma.setting.upsert({ where: { key: s.key }, update: { value: s.value }, create: s })
     }
     results.push('✅ Site ayarları')
 
+    // Kategoriler
+    const categories = [
+      { name: 'Peynirler',     slug: 'peynirler',  sortOrder: 1 },
+      { name: 'Tereyağı',      slug: 'tereyagi',   sortOrder: 2 },
+      { name: 'Bal & Pekmez',  slug: 'bal-pekmez', sortOrder: 3 },
+      { name: 'Doğal Ürünler', slug: 'dogal-urunler', sortOrder: 4 },
+    ]
+    for (const c of categories) {
+      await prisma.category.upsert({ where: { slug: c.slug }, update: {}, create: c })
+    }
+    results.push('✅ Kategoriler')
 
     return NextResponse.json({ success: true, results, message: 'Seed tamamlandı! Şimdi /admin adresine gidin.' })
   } catch (error: any) {
