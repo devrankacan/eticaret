@@ -220,6 +220,7 @@ model Order {
   paymentRef      String?
 
   // Teslimat adresi snapshot
+  customerEmail   String?  // Müşteri e-posta (sipariş bildirimi için)
   shippingName    String
   shippingPhone   String
   shippingCity    String

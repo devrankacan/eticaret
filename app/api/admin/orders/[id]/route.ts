@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { ORDER_STATUS_LABELS } from '@/lib/utils'
+import { sendOrderStatusUpdate } from '@/lib/email'
 
 function isAdmin(session: any): boolean {
   return session?.user?.role === 'admin'
@@ -69,7 +70,37 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     updateData.adminNote = body.adminNote
   }
 
-  await prisma.order.update({ where: { id: params.id }, data: updateData })
+  const updated = await prisma.order.update({
+    where: { id: params.id },
+    data: updateData,
+    include: { items: true },
+  })
+
+  // Status veya kargo güncellemesinde e-posta gönder
+  try {
+    const hasStatusChange = body.status && body.status !== order.status
+    const hasShipping = body.cargoCompany && body.cargoTrackingNumber
+    const hasPaymentApproval = body.approvePayment
+
+    if (hasStatusChange || hasShipping || hasPaymentApproval) {
+      const statusForEmail = hasShipping ? 'shipped' : hasPaymentApproval ? 'confirmed' : body.status
+      const statusLabel = ORDER_STATUS_LABELS[statusForEmail] ?? statusForEmail
+
+      await sendOrderStatusUpdate({
+        orderNumber: updated.orderNumber,
+        customerName: updated.shippingName,
+        customerEmail: updated.customerEmail,
+        newStatus: statusForEmail,
+        statusLabel,
+        note: body.note || null,
+        trackingNumber: body.cargoTrackingNumber || null,
+        cargoCompany: body.cargoCompany || null,
+        trackingUrl: body.cargoTrackingUrl || null,
+      })
+    }
+  } catch (e) {
+    console.error('[ORDER STATUS EMAIL ERROR]', e)
+  }
 
   return NextResponse.json({ success: true })
 }

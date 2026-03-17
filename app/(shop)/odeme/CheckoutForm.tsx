@@ -44,6 +44,7 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
     shippingDistrict: '',
     shippingAddress: '',
     shippingPostalCode: '',
+    customerEmail: '',
     paymentMethod: 'bank_transfer' as string,
     customerNote: '',
   })
@@ -168,6 +169,17 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
                     onChange={e => setForm({ ...form, shippingName: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
                     placeholder="Ad ve soyadınızı giriniz"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1.5 font-medium">E-posta *</label>
+                  <input
+                    required
+                    type="email"
+                    value={form.customerEmail}
+                    onChange={e => setForm({ ...form, customerEmail: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                    placeholder="ornek@email.com"
                   />
                 </div>
                 <div>

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { cookies } from 'next/headers'
 import { generateOrderNumber } from '@/lib/utils'
+import { sendOrderConfirmation } from '@/lib/email'
 
 // GET - kullanıcının siparişlerini listele
 export async function GET() {
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const {
     shippingName, shippingPhone, shippingCity, shippingDistrict,
-    shippingAddress, shippingPostalCode,
+    shippingAddress, shippingPostalCode, customerEmail,
     paymentMethod, customerNote, couponCode,
   } = body
 
@@ -126,6 +127,7 @@ export async function POST(req: NextRequest) {
       discountAmount,
       taxAmount: 0,
       total,
+      customerEmail: customerEmail || null,
       customerNote: customerNote || null,
       items: {
         create: cartItems.map(item => ({
@@ -163,10 +165,35 @@ export async function POST(req: NextRequest) {
   }
 
   // Kredi kartı ödemesinde sepeti henüz silme — ödeme callback'de silinecek
-  // (3D Secure başarısız olursa kullanıcı tekrar deneyebilsin)
   const isCreditCard = paymentMethod === 'credit_card'
   if (!isCreditCard) {
     await prisma.cartItem.deleteMany({ where: deleteKey })
+  }
+
+  // Sipariş e-posta bildirimi (hata olsa siparişi etkilemez)
+  try {
+    await sendOrderConfirmation({
+      orderNumber: order.orderNumber,
+      customerName: shippingName,
+      customerEmail: customerEmail || null,
+      paymentMethod,
+      shippingAddress,
+      shippingCity,
+      shippingDistrict,
+      shippingPhone,
+      subtotal,
+      shippingCost,
+      discountAmount,
+      total,
+      items: cartItems.map(item => ({
+        name: item.product.name,
+        qty: item.quantity,
+        unitPrice: item.product.price,
+        total: item.product.price * item.quantity,
+      })),
+    })
+  } catch (e) {
+    console.error('[ORDER EMAIL ERROR]', e)
   }
 
   return NextResponse.json({ success: true, orderNumber: order.orderNumber, orderId: order.id })
