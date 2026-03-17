@@ -25,11 +25,11 @@ async function main() {
   // ─── Kargo firmaları ─────────────────────────────────────
   await prisma.cargoCompany.upsert({
     where: { code: 'yurtici' },
-    update: {},
+    update: { freeShippingThreshold: 3500 },
     create: {
       name: 'Yurtiçi Kargo', code: 'yurtici',
       trackingUrl: 'https://www.yurticikargo.com/tr/online-islemler/gonderi-sorgula?code={tracking_number}',
-      baseShippingCost: 39.90, freeShippingThreshold: 500, isActive: true, isDefault: true,
+      baseShippingCost: 39.90, freeShippingThreshold: 3500, isActive: true, isDefault: true,
     },
   })
   await prisma.cargoCompany.upsert({

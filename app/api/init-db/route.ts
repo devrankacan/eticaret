@@ -25,12 +25,18 @@ export async function GET(req: Request) {
     results[u.key] = u.value
   }
 
+  // CargoCompany tablosundaki eşiği de güncelle
+  await prisma.cargoCompany.updateMany({
+    data: { freeShippingThreshold: 3500 },
+  })
+
   await revalidateSettings()
 
   // Mevcut değerleri kontrol et
   const all = await prisma.setting.findMany({
     where: { key: { in: ['free_shipping_threshold', 'shipping_cost'] } },
   })
+  const cargo = await prisma.cargoCompany.findMany({ select: { name: true, freeShippingThreshold: true } })
 
-  return NextResponse.json({ ok: true, updated: results, current: all })
+  return NextResponse.json({ ok: true, updated: results, current: all, cargo })
 }

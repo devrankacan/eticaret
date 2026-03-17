@@ -131,9 +131,6 @@ export default async function ProductPage({ params }: Props) {
                 <p className="text-gray-400 text-xs mt-0.5">KDV dahildir</p>
               </>
             )}
-            {hasVariations && (
-              <p className="mt-3 text-sm text-gray-500">Fiyat için seçenek seçiniz</p>
-            )}
 
             {/* Stok durumu (sadece varyasyonsuz ürünler) */}
             {!hasVariations && (

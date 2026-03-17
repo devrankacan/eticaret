@@ -129,6 +129,7 @@ model ProductVariation {
   stock        Int      @default(199)
   sortOrder    Int      @default(0)
   isDefault    Boolean  @default(false)
+  imagePath    String?  // Varyasyona özel görsel (opsiyonel)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

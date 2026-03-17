@@ -22,6 +22,16 @@ interface Category {
   name: string
 }
 
+interface Variation {
+  id: string
+  name: string
+  price: string
+  comparePrice: string
+  stock: string
+  imagePath: string
+  imageUploading: boolean
+}
+
 export default function UrunlerPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
@@ -37,7 +47,9 @@ export default function UrunlerPage() {
   const [bulkLoading, setBulkLoading] = useState(false)
   const emptyForm = { name: '', categoryId: '', price: '', comparePrice: '', stock: '0', weight: '', shortDescription: '', isActive: true, isFeatured: false, images: [{ url: '', uploading: false }] }
   const [form, setForm] = useState(emptyForm)
+  const [variations, setVariations] = useState<Variation[]>([])
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const varImageRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const fetchProducts = useCallback(async () => {
     setLoading(true)
@@ -55,7 +67,7 @@ export default function UrunlerPage() {
     fetch('/api/admin/categories').then(r => r.json()).then(data => setCategories(data.filter((c: any) => !c.parentId || true)))
   }, [])
 
-  const openNew = () => { setForm(emptyForm); setEditId(null); setShowForm(true) }
+  const openNew = () => { setForm(emptyForm); setVariations([]); setEditId(null); setShowForm(true) }
 
   const openEdit = async (id: string) => {
     const res = await fetch(`/api/admin/products/${id}`)
@@ -67,13 +79,26 @@ export default function UrunlerPage() {
       isActive: p.isActive, isFeatured: p.isFeatured,
       images: p.images.length ? p.images.map((i: any) => ({ url: i.imagePath, uploading: false })) : [{ url: '', uploading: false }],
     })
+    setVariations(p.variations?.map((v: any) => ({
+      id: v.id,
+      name: v.name,
+      price: v.price.toString(),
+      comparePrice: v.comparePrice?.toString() || '',
+      stock: v.stock.toString(),
+      imagePath: v.imagePath || '',
+      imageUploading: false,
+    })) ?? [])
     setEditId(id)
     setShowForm(true)
   }
 
   const save = async () => {
     setSaving(true)
-    const payload = { ...form, images: form.images.filter(i => i.url) }
+    const payload = {
+      ...form,
+      images: form.images.filter(i => i.url),
+      variations: variations.map(v => ({ id: v.id, price: v.price, comparePrice: v.comparePrice, stock: v.stock, imagePath: v.imagePath })),
+    }
     if (editId) {
       await fetch(`/api/admin/products/${editId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
     } else {
@@ -134,6 +159,18 @@ export default function UrunlerPage() {
     const reader = new FileReader()
     reader.onload = ev => {
       setForm(f => ({ ...f, images: f.images.map((img, idx) => idx === i ? { url: ev.target?.result as string, uploading: false } : img) }))
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function handleVariationImageFile(vi: number, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) { alert('Görsel 5MB\'den küçük olmalıdır.'); return }
+    setVariations(vs => vs.map((v, idx) => idx === vi ? { ...v, imageUploading: true } : v))
+    const reader = new FileReader()
+    reader.onload = ev => {
+      setVariations(vs => vs.map((v, idx) => idx === vi ? { ...v, imagePath: ev.target?.result as string, imageUploading: false } : v))
     }
     reader.readAsDataURL(file)
   }
@@ -420,6 +457,96 @@ export default function UrunlerPage() {
                     <span className="text-sm text-gray-700">⭐ Öne Çıkan</span>
                   </label>
                 </div>
+
+                {/* Varyasyon Düzenleme */}
+                {variations.length > 0 && (
+                  <div className="sm:col-span-2">
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Varyasyonlar
+                      <span className="text-xs text-gray-400 font-normal ml-2">({variations.length} seçenek)</span>
+                    </label>
+                    <div className="border border-gray-200 rounded-xl overflow-hidden">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-gray-50 border-b text-gray-500">
+                            <th className="px-3 py-2 text-left font-semibold">Seçenek</th>
+                            <th className="px-3 py-2 text-left font-semibold">Fiyat (₺)</th>
+                            <th className="px-3 py-2 text-left font-semibold">Eski Fiyat (₺)</th>
+                            <th className="px-3 py-2 text-left font-semibold">Stok</th>
+                            <th className="px-3 py-2 text-left font-semibold">Görsel</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {variations.map((v, vi) => (
+                            <tr key={v.id} className="hover:bg-gray-50">
+                              <td className="px-3 py-2 font-medium text-gray-800">{v.name}</td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="number" step="0.01" min="0"
+                                  value={v.price}
+                                  onChange={e => setVariations(vs => vs.map((x, i) => i === vi ? { ...x, price: e.target.value } : x))}
+                                  className="w-24 border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                                />
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="number" step="0.01" min="0"
+                                  value={v.comparePrice}
+                                  onChange={e => setVariations(vs => vs.map((x, i) => i === vi ? { ...x, comparePrice: e.target.value } : x))}
+                                  className="w-24 border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                                  placeholder="—"
+                                />
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="number" min="0"
+                                  value={v.stock}
+                                  onChange={e => setVariations(vs => vs.map((x, i) => i === vi ? { ...x, stock: e.target.value } : x))}
+                                  className="w-20 border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-300"
+                                />
+                              </td>
+                              <td className="px-3 py-2">
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    onClick={() => varImageRefs.current[vi]?.click()}
+                                    className="w-10 h-10 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center cursor-pointer hover:border-primary-400 transition overflow-hidden relative flex-shrink-0"
+                                  >
+                                    {v.imageUploading ? (
+                                      <svg className="w-4 h-4 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                                      </svg>
+                                    ) : v.imagePath ? (
+                                      <Image src={v.imagePath} alt="" fill className="object-cover" unoptimized sizes="40px"/>
+                                    ) : (
+                                      <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                      </svg>
+                                    )}
+                                  </div>
+                                  <input
+                                    ref={el => { varImageRefs.current[vi] = el }}
+                                    type="file" accept="image/*" className="hidden"
+                                    onChange={e => handleVariationImageFile(vi, e)}
+                                  />
+                                  {v.imagePath && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setVariations(vs => vs.map((x, i) => i === vi ? { ...x, imagePath: '' } : x))}
+                                      className="text-xs text-red-400 hover:text-red-600"
+                                    >
+                                      Sil
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="p-5 border-t flex gap-3">

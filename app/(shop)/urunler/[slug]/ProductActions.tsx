@@ -33,10 +33,11 @@ export function ProductActions({
   baseComparePrice,
 }: Props) {
   const hasVariations = variations.length > 0
-  const defaultVariation = variations.find(v => v.stock > 0) ?? variations[0]
+  // En küçük (en düşük fiyatlı/sortOrder) stokta olan varyasyonu varsayılan yap
+  const defaultVariation = variations.find(v => v.stock > 0) ?? variations[0] ?? null
 
   const [selectedVariation, setSelectedVariation] = useState<Variation | null>(
-    hasVariations ? (defaultVariation ?? null) : null
+    hasVariations ? defaultVariation : null
   )
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -56,11 +57,22 @@ export function ProductActions({
     : null
 
   async function addToCart() {
-    if (activeOutOfStock || loading) return
-    if (hasVariations && !selectedVariation) {
-      addToast('Lütfen bir seçenek seçin.', 'error')
-      return
+    if (loading) return
+    // Varyasyonlu ürünlerde seçili yoksa en küçük varsayılanı otomatik seç
+    let variation = selectedVariation
+    if (hasVariations && !variation) {
+      if (defaultVariation) {
+        setSelectedVariation(defaultVariation)
+        variation = defaultVariation
+      } else {
+        addToast('Lütfen bir seçenek seçin.', 'error')
+        return
+      }
     }
+    const effectiveOutOfStock = hasVariations
+      ? (variation ? variation.stock <= 0 : true)
+      : isOutOfStock
+    if (effectiveOutOfStock) return
     setLoading(true)
     try {
       const res = await fetch('/api/cart', {
@@ -69,11 +81,11 @@ export function ProductActions({
         body: JSON.stringify({
           productId,
           quantity,
-          variationId: selectedVariation?.id ?? null,
+          variationId: variation?.id ?? null,
         }),
       })
       if (res.ok) {
-        const label = selectedVariation ? `"${productName} - ${selectedVariation.name}"` : `"${productName}"`
+        const label = variation ? `"${productName} - ${variation.name}"` : `"${productName}"`
         addToast(`${label} sepete eklendi!`)
         refreshCart()
       } else {
@@ -117,14 +129,6 @@ export function ProductActions({
               )
             })}
           </div>
-          {selectedVariation && (
-            <button
-              onClick={() => setSelectedVariation(null)}
-              className="mt-1.5 text-xs text-gray-400 hover:text-gray-600 transition underline"
-            >
-              Temizle
-            </button>
-          )}
         </div>
       )}
 
@@ -198,14 +202,14 @@ export function ProductActions({
 
           <button
             onClick={addToCart}
-            disabled={loading || (hasVariations && !selectedVariation)}
+            disabled={loading}
             className="w-full bg-primary-600 hover:bg-primary-700 active:scale-[0.98] disabled:opacity-60
               text-white font-bold py-4 rounded-2xl transition text-base flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            {loading ? 'Ekleniyor...' : hasVariations && !selectedVariation ? 'Seçenek Seçin' : 'Sepete Ekle'}
+            {loading ? 'Ekleniyor...' : 'Sepete Ekle'}
           </button>
         </>
       )}
