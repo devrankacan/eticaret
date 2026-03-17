@@ -88,8 +88,7 @@ export default function SepetClient({ freeShippingThreshold, minOrderAmount }: {
 
   const getItemPrice = (item: CartItem) => item.variation ? item.variation.price : item.product.price
   const subtotal = items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0)
-  const shippingCost = (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) ? 0 : 250
-  const total = subtotal - discount + shippingCost
+  const total = subtotal - discount
   const belowMinOrder = minOrderAmount > 0 && subtotal < minOrderAmount
   const deliveryDate = (() => {
     const d = new Date()
@@ -269,15 +268,6 @@ export default function SepetClient({ freeShippingThreshold, minOrderAmount }: {
                   <span>İndirim</span>
                   <span>-{discount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL</span>
                 </div>
-              )}
-              <div className="flex justify-between text-gray-500">
-                <span>Kargo</span>
-                <span>{shippingCost > 0 ? `${shippingCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL` : 'Ücretsiz'}</span>
-              </div>
-              {shippingCost > 0 && freeShippingThreshold > 0 && (
-                <p className="text-xs text-blue-600">
-                  {freeShippingThreshold.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ ve üzeri alışverişlerde kargo ücretsiz
-                </p>
               )}
               <div className="flex justify-between font-bold text-gray-900 text-base border-t pt-3 mt-1">
                 <span>Toplam</span>
