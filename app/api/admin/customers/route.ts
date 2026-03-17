@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const q = searchParams.get('q') || ''
   const limit = 20
   const where = q
-    ? { OR: [{ name: { contains: q } }, { email: { contains: q } }] }
+    ? { OR: [{ name: { contains: q, mode: 'insensitive' as const } }, { email: { contains: q, mode: 'insensitive' as const } }] }
     : {}
   const [users, total] = await Promise.all([
     prisma.user.findMany({

@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get('page') || '1')
   const q = searchParams.get('q') || ''
   const limit = 20
-  const where = q ? { name: { contains: q } } : {}
+  const where = q ? { name: { contains: q, mode: 'insensitive' as const } } : {}
   const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
