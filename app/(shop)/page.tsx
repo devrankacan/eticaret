@@ -33,7 +33,7 @@ async function getData() {
         },
         products: {
           where: { isActive: true },
-          include: { images: { take: 1, orderBy: { sortOrder: 'asc' } } },
+          include: { images: { take: 1, orderBy: { sortOrder: 'asc' } }, variations: { select: { stock: true } } },
           orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
           take: 8,
         },
@@ -43,7 +43,7 @@ async function getData() {
     // Öne çıkan ürünler
     prisma.product.findMany({
       where: { isActive: true, isFeatured: true },
-      include: { images: { where: { isPrimary: true }, take: 1 } },
+      include: { images: { where: { isPrimary: true }, take: 1 }, variations: { select: { stock: true } } },
       orderBy: { createdAt: 'desc' },
       take: 10,
     }),

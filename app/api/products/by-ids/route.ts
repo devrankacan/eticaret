@@ -18,10 +18,12 @@ export async function GET(req: NextRequest) {
       comparePrice: true,
       stock: true,
       lowStockThreshold: true,
+      hasVariations: true,
       images: {
         select: { id: true, imagePath: true, isPrimary: true },
         orderBy: { sortOrder: 'asc' },
       },
+      variations: { select: { stock: true } },
     },
   })
 

@@ -19,6 +19,8 @@ interface Product {
   comparePrice: number | null
   stock: number
   lowStockThreshold: number
+  hasVariations: boolean
+  variations: { stock: number }[]
   images: ProductImage[]
 }
 

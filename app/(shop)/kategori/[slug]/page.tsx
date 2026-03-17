@@ -52,6 +52,7 @@ export default async function KategoriPage({ params, searchParams }: Props) {
       include: {
         images: { where: { isPrimary: true }, take: 1 },
         category: true,
+        variations: { select: { stock: true } },
       },
       orderBy,
       skip: (page - 1) * LIMIT,

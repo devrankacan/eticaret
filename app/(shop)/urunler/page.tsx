@@ -49,7 +49,7 @@ export default async function UrunlerPage({ searchParams }: Props) {
   const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
-      include: { images: { where: { isPrimary: true }, take: 1 }, category: true },
+      include: { images: { where: { isPrimary: true }, take: 1 }, category: true, variations: { select: { stock: true } } },
       orderBy,
       skip: (page - 1) * LIMIT,
       take: LIMIT,

@@ -13,6 +13,10 @@ interface ProductImage {
   isPrimary: boolean
 }
 
+interface ProductVariationStock {
+  stock: number
+}
+
 interface Product {
   id: string
   name: string
@@ -21,6 +25,8 @@ interface Product {
   comparePrice: number | null
   stock: number
   lowStockThreshold: number
+  hasVariations: boolean
+  variations: ProductVariationStock[]
   images: ProductImage[]
 }
 
@@ -37,7 +43,9 @@ export function ProductCard({ product, className = '' }: Props) {
   const favorited = isFavorite(product.id)
 
   const image = product.images.find(i => i.isPrimary) ?? product.images[0]
-  const isOutOfStock = product.stock <= 0
+  const isOutOfStock = product.hasVariations
+    ? !product.variations.some(v => v.stock > 0)
+    : product.stock <= 0
   const isLowStock = product.stock > 0 && product.stock <= product.lowStockThreshold
   const discountPercent = product.comparePrice && product.comparePrice > product.price
     ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
