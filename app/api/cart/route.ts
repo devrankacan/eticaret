@@ -37,6 +37,7 @@ export async function GET() {
 
 // POST - sepete ekle
 export async function POST(req: NextRequest) {
+  try {
   const session = await getServerSession(authOptions)
   const cookieStore = cookies()
   const key = getCartKey(session, cookieStore)
@@ -111,4 +112,8 @@ export async function POST(req: NextRequest) {
     response.cookies.set('cart_session', key.sessionId!, { httpOnly: true, maxAge: 60 * 60 * 24 * 30 })
   }
   return response
+  } catch (err: any) {
+    console.error('[CART POST ERROR]', err)
+    return NextResponse.json({ error: err?.message ?? 'Sunucu hatası' }, { status: 500 })
+  }
 }
