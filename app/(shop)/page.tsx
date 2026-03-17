@@ -101,9 +101,9 @@ export default async function HomePage() {
       {showCategories && categories.length > 0 && (
         <div className="bg-white py-4">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="flex gap-4 scroll-x pb-2 lg:grid lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+            <div className="flex overflow-x-auto gap-3 pb-2 lg:grid lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6" style={{ scrollbarWidth: 'none' }}>
               {categories.map(cat => (
-                <div key={cat.id} className="flex-shrink-0 w-40 sm:w-48 lg:w-auto">
+                <div key={cat.id} className="flex-shrink-0 w-36 sm:w-44 lg:w-auto">
                   <Link href={`/kategori/${cat.slug}`}>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 hover:shadow-md transition-shadow text-center">
                       {/* Kategori görseli */}
