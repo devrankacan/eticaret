@@ -47,7 +47,7 @@ export default async function ProductPage({ params }: Props) {
       isActive: true,
       id: { not: product.id },
     },
-    include: { images: { where: { isPrimary: true }, take: 1 } },
+    include: { images: { where: { isPrimary: true }, take: 1 }, variations: { select: { stock: true } } },
     take: 6,
   })
 
