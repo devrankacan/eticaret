@@ -4,8 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { BannerSlider } from '@/components/product/BannerSlider'
 import { ProductCard } from '@/components/product/ProductCard'
 import { InstagramFeed } from '@/components/InstagramFeed'
-import Image from 'next/image'
-import Link from 'next/link'
+import { CategoryProductSection } from '@/components/home/CategoryProductSection'
 
 async function getData() {
   const now = new Date()
@@ -97,93 +96,10 @@ export default async function HomePage() {
       {/* ====== BANNER SLİDER ====== */}
       <BannerSlider banners={banners} />
 
-      {/* ====== KATEGORİ KARTLARI ====== */}
+      {/* ====== KATEGORİ + ÜRÜNLER ====== */}
       {showCategories && categories.length > 0 && (
-        <div className="bg-white py-4">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex overflow-x-auto gap-3 pb-2 lg:grid lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6" style={{ scrollbarWidth: 'none' }}>
-              {categories.map(cat => (
-                <div key={cat.id} className="flex-shrink-0 w-36 sm:w-44 lg:w-auto">
-                  <Link href={`/kategori/${cat.slug}`}>
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 hover:shadow-md transition-shadow text-center">
-                      {/* Kategori görseli */}
-                      <div className="flex justify-center mb-3">
-                        {cat.image ? (
-                          <Image
-                            src={cat.image}
-                            alt={cat.name}
-                            width={96}
-                            height={96}
-                            className="w-24 h-24 object-cover rounded-full"
-                          />
-                        ) : (
-                          <div className="w-24 h-24 bg-primary-50 rounded-full flex items-center justify-center">
-                            <svg className="w-10 h-10 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                      {/* Kategori adı */}
-                      <h3 className="text-primary-700 font-bold text-xs sm:text-sm mb-2 uppercase leading-tight">
-                        {cat.name}
-                      </h3>
-                      {/* Alt kategoriler */}
-                      {cat.children.length > 0 && (
-                        <ul className="space-y-1">
-                          {cat.children.map(child => (
-                            <li key={child.id} className="text-xs text-gray-500 hover:text-primary-600 transition truncate">
-                              {child.name}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <CategoryProductSection categories={categories} />
       )}
-
-      {/* ====== KATEGORİ BAZLI ÜRÜNLER ====== */}
-      {categories.map(cat => {
-        if (cat.products.length === 0) return null
-        return (
-          <div key={cat.id} className="bg-white py-5">
-            <div className="max-w-7xl mx-auto px-4">
-              {/* Başlık */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-6 bg-primary-600 rounded-full" />
-                  <h2 className="font-bold text-base sm:text-lg text-gray-900 uppercase">
-                    {cat.name}
-                  </h2>
-                </div>
-                <Link
-                  href={`/kategori/${cat.slug}`}
-                  className="text-primary-600 text-sm font-medium hover:underline flex items-center gap-1"
-                >
-                  Tümü
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              </div>
-
-              {/* Ürünler - mobilde yatay scroll, masaüstünde grid */}
-              <div className="flex gap-3 scroll-x pb-2 lg:grid lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-                {cat.products.map(product => (
-                  <div key={product.id} className="flex-shrink-0 w-40 sm:w-48 lg:w-auto">
-                    <ProductCard product={product} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )
-      })}
 
       {/* ====== ÖNE ÇIKAN ÜRÜNLER ====== */}
       {showFeatured && featuredProducts.length > 0 && (
