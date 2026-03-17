@@ -202,13 +202,13 @@ export function CartPanel({ isOpen, onClose }: Props) {
                 {total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
               </span>
             </div>
-            <Link
+            <a
               href="/sepet"
               onClick={onClose}
               className="block w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-xl text-center transition"
             >
               Siparişi Tamamla
-            </Link>
+            </a>
             <button
               onClick={onClose}
               className="block w-full text-sm text-gray-500 hover:text-gray-700 text-center py-1"

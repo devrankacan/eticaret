@@ -290,7 +290,7 @@ export default function SepetClient({ freeShippingThreshold, minOrderAmount }: {
               </div>
             )}
 
-            <Link
+            <a
               href="/odeme"
               className="mt-3 w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2"
             >
@@ -298,7 +298,7 @@ export default function SepetClient({ freeShippingThreshold, minOrderAmount }: {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </Link>
+            </a>
           </div>
 
           {/* Güvenlik */}
