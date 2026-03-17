@@ -10,9 +10,11 @@ type Product = {
   name: string
   slug: string
   price: number
-  originalPrice?: number | null
-  isFeatured?: boolean
-  images: { imagePath: string; isPrimary?: boolean }[]
+  comparePrice: number | null
+  stock: number
+  lowStockThreshold: number
+  hasVariations: boolean
+  images: { id: string; imagePath: string; isPrimary: boolean }[]
   variations: { stock: number }[]
 }
 
@@ -24,21 +26,97 @@ type Category = {
   products: Product[]
 }
 
-function AllIcon() {
+// Slug veya isme göre ikon seçimi
+function getCategoryIcon(slug: string, name: string, cls = 'w-5 h-5 flex-shrink-0') {
+  const key = (slug + ' ' + name).toLowerCase()
+
+  // Bal
+  if (/bal|honey/.test(key)) return (
+    <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+  )
+
+  // Peynir / Süt ürünleri
+  if (/peynir|cheese|süt|dairy/.test(key)) return (
+    <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 19h18l-2-9H5L3 19z" />
+      <path d="M5 10L12 3l7 7" />
+      <circle cx="9" cy="15" r="1" fill="currentColor" stroke="none" />
+      <circle cx="14" cy="13" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+
+  // Yağ / Tereyağı
+  if (/yağ|ya[gğ]|butter|oil/.test(key)) return (
+    <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2c0 0-5 5.5-5 10a5 5 0 0010 0c0-4.5-5-10-5-10z" />
+    </svg>
+  )
+
+  // Pekmez / Reçel / Şurup
+  if (/pekmez|reçel|jam|syrup|şurup/.test(key)) return (
+    <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 3h8l1 4H7L8 3z" />
+      <rect x="5" y="7" width="14" height="13" rx="2" />
+      <path d="M9 13c0-1.7 1.5-3 3-1.5S15 13 15 13s-1.5 3-3 1.5S9 13 9 13z" />
+    </svg>
+  )
+
+  // Paket / Sepet
+  if (/paket|package|sepet|basket|set|kutu/.test(key)) return (
+    <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+    </svg>
+  )
+
+  // Kuru gıda / Tahıl / Kuruyemiş
+  if (/kuru|tahıl|grain|nut|kuruyemiş|bakliyat/.test(key)) return (
+    <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22V12" />
+      <path d="M12 12c0 0-4-3-4-7a4 4 0 018 0c0 4-4 7-4 7z" />
+      <path d="M8 16c-1.5.5-3 0-3-2" />
+      <path d="M16 16c1.5.5 3 0 3-2" />
+    </svg>
+  )
+
+  // Baharat / Ot
+  if (/baharat|spice|ot|herb/.test(key)) return (
+    <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2a10 10 0 000 20" />
+      <path d="M12 2a10 10 0 010 20" />
+      <path d="M2 12h20" />
+      <path d="M12 2c2 4 2 8 0 20" />
+    </svg>
+  )
+
+  // Varsayılan: yaprak / doğal ürün
   return (
-    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+    <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 8C8 10 5.9 16.17 3.82 19.36A1 1 0 004.64 21c4-2 8-3 12-8 1-1.5 1.5-3.5 1.5-5H17z" />
+      <path d="M3.82 19.36C6 14 9 10 17 8" />
     </svg>
   )
 }
 
-function CategoryIcon({ image, name, active }: { image?: string | null; name: string; active: boolean }) {
+function AllIcon() {
+  return (
+    <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  )
+}
+
+function CategoryIcon({ image, name, slug, active }: { image?: string | null; name: string; slug: string; active: boolean }) {
   if (image) {
     return <Image src={image} alt={name} width={24} height={24} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
   }
   return (
-    <span className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${active ? 'bg-white/25 text-white' : 'bg-primary-100 text-primary-600'}`}>
-      {name.charAt(0)}
+    <span className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center ${active ? 'text-white/90' : 'text-primary-600'}`}>
+      {getCategoryIcon(slug, name, 'w-[18px] h-[18px] flex-shrink-0')}
     </span>
   )
 }
@@ -78,9 +156,10 @@ export function CategoryProductSection({ categories }: { categories: Category[] 
                     : 'bg-white text-primary-700 border-primary-200 hover:bg-primary-50'
                 }`}
               >
-                {cat.image && (
-                  <Image src={cat.image} alt={cat.name} width={18} height={18} className="w-[18px] h-[18px] rounded-full object-cover" />
-                )}
+                {cat.image
+                  ? <Image src={cat.image} alt={cat.name} width={18} height={18} className="w-[18px] h-[18px] rounded-full object-cover" />
+                  : getCategoryIcon(cat.slug, cat.name, 'w-[18px] h-[18px] flex-shrink-0')
+                }
                 {cat.name}
               </button>
             ))}
@@ -113,7 +192,7 @@ export function CategoryProductSection({ categories }: { categories: Category[] 
                     : 'text-gray-700 hover:bg-primary-50 hover:text-primary-800'
                 }`}
               >
-                <CategoryIcon image={cat.image} name={cat.name} active={activeId === cat.id} />
+                <CategoryIcon image={cat.image} name={cat.name} slug={cat.slug} active={activeId === cat.id} />
                 {cat.name}
               </button>
             ))}
