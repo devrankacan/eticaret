@@ -59,67 +59,6 @@ export async function GET(req: NextRequest) {
     }
     results.push('✅ Site ayarları')
 
-    // Kargo firmaları
-    await prisma.cargoCompany.createMany({
-      skipDuplicates: true,
-      data: [
-        { name: 'Yurtiçi Kargo', code: 'yurtici', trackingUrl: 'https://www.yurticikargo.com/tr/online-islemler/gonderi-sorgula?code={tracking_number}', freeShippingThreshold: 500, baseShippingCost: 39.90, isActive: true, isDefault: true },
-        { name: 'Aras Kargo',    code: 'aras',    trackingUrl: 'https://www.araskargo.com.tr/pages/kargo-takip.aspx?q={tracking_number}', baseShippingCost: 44.90, isActive: true },
-        { name: 'MNG Kargo',     code: 'mng',     trackingUrl: 'https://www.mngkargo.com.tr/wps/portal/mng/main/gonderitakip?durum=TAKIP&takipNo={tracking_number}', baseShippingCost: 44.90, isActive: true },
-      ],
-    })
-    results.push('✅ Kargo firmaları')
-
-    // Kategoriler
-    const balPekmez = await prisma.category.upsert({
-      where: { slug: 'bal-pekmez' },
-      update: {},
-      create: { name: 'Bal & Pekmez', slug: 'bal-pekmez', image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=300&q=80', description: 'Doğal ve organik bal çeşitleri', sortOrder: 1 },
-    })
-    const peynirler = await prisma.category.upsert({
-      where: { slug: 'peynirler' },
-      update: {},
-      create: { name: 'Peynirler', slug: 'peynirler', image: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=300&q=80', description: 'El yapımı köy peynirleri', sortOrder: 2 },
-    })
-    const tereyagi = await prisma.category.upsert({
-      where: { slug: 'tereyagi' },
-      update: {},
-      create: { name: 'Tereyağı', slug: 'tereyagi', image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=300&q=80', description: 'Köy tereyağı ve kaymak', sortOrder: 3 },
-    })
-    const dogalUrunler = await prisma.category.upsert({
-      where: { slug: 'dogal-urunler' },
-      update: {},
-      create: { name: 'Doğal Ürünler', slug: 'dogal-urunler', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&q=80', description: 'Zeytin, zeytinyağı, tahin ve daha fazlası', sortOrder: 4 },
-    })
-    const receller = await prisma.category.upsert({
-      where: { slug: 'recel-marmelat' },
-      update: {},
-      create: { name: 'Reçel & Marmelat', slug: 'recel-marmelat', image: 'https://images.unsplash.com/photo-1563246598-8b3c2c4e95a3?w=300&q=80', description: 'Ev yapımı doğal reçel ve marmelatlar', sortOrder: 5 },
-    })
-    const zeytinler = await prisma.category.upsert({
-      where: { slug: 'zeytin-zeytinyagi' },
-      update: {},
-      create: { name: 'Zeytin & Zeytinyağı', slug: 'zeytin-zeytinyagi', image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&q=80', description: 'Soğuk sıkım zeytinyağı', sortOrder: 6 },
-    })
-
-    await prisma.category.createMany({
-      skipDuplicates: true,
-      data: [
-        { parentId: balPekmez.id,    name: 'Çiçek Balı',      slug: 'cicek-bali',       sortOrder: 1 },
-        { parentId: balPekmez.id,    name: 'Çam Balı',         slug: 'cam-bali',         sortOrder: 2 },
-        { parentId: balPekmez.id,    name: 'Üzüm Pekmezi',     slug: 'uzum-pekmezi',     sortOrder: 3 },
-        { parentId: peynirler.id,    name: 'Beyaz Peynir',     slug: 'beyaz-peynir',     sortOrder: 1 },
-        { parentId: peynirler.id,    name: 'Tulum Peyniri',    slug: 'tulum-peyniri',    sortOrder: 2 },
-        { parentId: peynirler.id,    name: 'Kaşar Peyniri',    slug: 'kasar-peyniri',    sortOrder: 3 },
-        { parentId: tereyagi.id,     name: 'Köy Tereyağı',     slug: 'koy-tereyagi',     sortOrder: 1 },
-        { parentId: tereyagi.id,     name: 'Kaymak',           slug: 'kaymak',           sortOrder: 2 },
-        { parentId: dogalUrunler.id, name: 'Tahin & Helva',    slug: 'tahin-helva',      sortOrder: 1 },
-        { parentId: zeytinler.id,    name: 'Soğuk Sıkım Yağ', slug: 'soguk-sikim-yag',  sortOrder: 1 },
-        { parentId: zeytinler.id,    name: 'Salamura Zeytin',  slug: 'salamura-zeytin',  sortOrder: 2 },
-      ],
-    })
-    results.push('✅ Kategoriler')
-
 
     return NextResponse.json({ success: true, results, message: 'Seed tamamlandı! Şimdi /admin adresine gidin.' })
   } catch (error: any) {
