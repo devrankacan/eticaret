@@ -67,7 +67,8 @@ export function ProductCard({ product, className = '' }: Props) {
         addToast(`${label} sepete eklendi!`)
         refreshCart()
       } else {
-        addToast('Ürün eklenemedi.', 'error')
+        const data = await res.json().catch(() => ({}))
+        addToast(data.error || 'Ürün eklenemedi.', 'error')
       }
     } catch {
       addToast('Bir hata oluştu.', 'error')
