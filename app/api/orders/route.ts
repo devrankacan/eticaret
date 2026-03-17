@@ -65,13 +65,16 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Ayarları çek
-  const settingRows = await prisma.setting.findMany({
-    where: { key: { in: ['min_order_amount', 'free_shipping_threshold'] } },
-  })
+  // Ayarları çek (kargo bilgisi CargoCompany tablosundan, min sipariş Setting tablosundan)
+  const [settingRows, defaultCargo] = await Promise.all([
+    prisma.setting.findMany({ where: { key: { in: ['min_order_amount'] } } }),
+    prisma.cargoCompany.findFirst({ where: { isDefault: true, isActive: true } })
+      .then(c => c ?? prisma.cargoCompany.findFirst({ where: { isActive: true } })),
+  ])
   const settingsMap = Object.fromEntries(settingRows.map(s => [s.key, s.value ?? '']))
   const minOrderAmount = parseFloat(settingsMap.min_order_amount || '0') || 0
-  const freeShippingThreshold = parseFloat(settingsMap.free_shipping_threshold || '0') || 0
+  const freeShippingThreshold = defaultCargo?.freeShippingThreshold ?? 0
+  const baseShippingCost = defaultCargo?.baseShippingCost ?? 0
 
   // Fiyat hesaplama
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
@@ -84,7 +87,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const shippingCost = (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) ? 0 : 250
+  const shippingCost = (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) ? 0 : baseShippingCost
 
   // Kupon
   let discountAmount = 0

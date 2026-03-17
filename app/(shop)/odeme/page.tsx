@@ -33,10 +33,11 @@ export default async function OdemePage() {
     redirect('/sepet')
   }
 
-  // Ayarları çek (kargo eşiği cache bypass ile direkt DB'den)
-  const [settings, shippingSetting] = await Promise.all([
+  // Ayarları çek (kargo bilgisi direkt CargoCompany tablosundan)
+  const [settings, defaultCargo] = await Promise.all([
     getAllSettings(),
-    prisma.setting.findUnique({ where: { key: 'free_shipping_threshold' } }),
+    prisma.cargoCompany.findFirst({ where: { isDefault: true, isActive: true } })
+      .then(c => c ?? prisma.cargoCompany.findFirst({ where: { isActive: true } })),
   ])
   const bankInfo = {
     bank_name: settings.bank_name || '',
@@ -45,7 +46,8 @@ export default async function OdemePage() {
     bank_branch: settings.bank_branch || '',
   }
   const paymentEnabled = settings.payment_enabled === '1' && !!settings.payment_provider
-  const freeShippingThreshold = parseFloat(shippingSetting?.value || '3500') || 3500
+  const freeShippingThreshold = defaultCargo?.freeShippingThreshold ?? 0
+  const baseShippingCost = defaultCargo?.baseShippingCost ?? 0
   const minOrderAmount = parseFloat(settings.min_order_amount || '0') || 0
 
   // Serileştirilebilir veri hazırla
@@ -68,6 +70,7 @@ export default async function OdemePage() {
       paymentEnabled={paymentEnabled}
       userName={(session?.user as any)?.name || ''}
       freeShippingThreshold={freeShippingThreshold}
+      baseShippingCost={baseShippingCost}
       minOrderAmount={minOrderAmount}
     />
   )

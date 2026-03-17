@@ -23,10 +23,11 @@ interface Props {
   paymentEnabled: boolean
   userName: string
   freeShippingThreshold: number
+  baseShippingCost: number
   minOrderAmount: number
 }
 
-export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName, freeShippingThreshold, minOrderAmount }: Props) {
+export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName, freeShippingThreshold, baseShippingCost, minOrderAmount }: Props) {
   const { refreshCart } = useCart()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -48,7 +49,7 @@ export default function CheckoutForm({ items, bankInfo, paymentEnabled, userName
   })
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-  const shippingCost = (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) ? 0 : 250
+  const shippingCost = (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) ? 0 : baseShippingCost
   const total = subtotal + shippingCost - discount
   const belowMinOrder = minOrderAmount > 0 && subtotal < minOrderAmount
   const deliveryDate = (() => {
