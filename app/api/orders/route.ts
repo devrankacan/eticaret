@@ -62,7 +62,12 @@ export async function POST(req: NextRequest) {
 
   // Fiyat hesaplama
   const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-  const shippingCost = subtotal >= 500 ? 0 : 39.9
+
+  if (subtotal < 999.99) {
+    return NextResponse.json({ error: 'Minimum sipariş tutarı 999,99 ₺' }, { status: 400 })
+  }
+
+  const shippingCost = subtotal >= 3500 ? 0 : 250
 
   // Kupon
   let discountAmount = 0

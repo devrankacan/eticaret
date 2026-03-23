@@ -88,7 +88,7 @@ export default function SepetPage() {
 
   const getItemPrice = (item: CartItem) => item.variation ? item.variation.price : item.product.price
   const subtotal = items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0)
-  const shippingCost = subtotal >= 500 ? 0 : 39.9
+  const shippingCost = subtotal >= 3500 ? 0 : 250
   const total = subtotal - discount + shippingCost
 
   if (loading) {

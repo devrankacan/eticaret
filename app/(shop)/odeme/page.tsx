@@ -105,7 +105,7 @@ export default function OdemePage() {
   }
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-  const shippingCost = subtotal >= 3500 ? 0 : 39.9
+  const shippingCost = subtotal >= 3500 ? 0 : 250
   const total = subtotal + shippingCost - discount
   const deliveryDate = (() => { const d = new Date(); d.setDate(d.getDate() + 3); return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' }) })()
 
@@ -113,6 +113,15 @@ export default function OdemePage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center text-gray-400">
         <div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full mx-auto" />
+      </div>
+    )
+  }
+
+  if (subtotal < 999.99) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-12 text-center">
+        <p className="text-gray-600 mb-4">Minimum sipariş tutarı <strong>999,99 ₺</strong>. Sepetinize ürün ekleyerek devam edebilirsiniz.</p>
+        <Link href="/sepet" className="inline-block bg-primary-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-primary-600 transition">Sepete Dön</Link>
       </div>
     )
   }
