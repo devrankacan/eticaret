@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build && cp -r .next/static .next/standalone/.next/ && (test -d public && cp -r public .next/standalone/public || true)",
+    "build": "prisma generate && next build && cp -r .next/static .next/standalone/.next/ && (test -d public && cp -r public .next/standalone/public || true) && cp -r node_modules/.prisma .next/standalone/node_modules/.prisma && cp -r node_modules/@prisma/client .next/standalone/node_modules/@prisma/client && cp -r node_modules/@prisma/adapter-pg .next/standalone/node_modules/@prisma/adapter-pg && cp -r node_modules/pg .next/standalone/node_modules/pg && cp -r node_modules/pg-pool .next/standalone/node_modules/pg-pool && cp -r node_modules/pg-protocol .next/standalone/node_modules/pg-protocol",
     "start": "node .next/standalone/server.js",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",

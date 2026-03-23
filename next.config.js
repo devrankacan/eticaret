@@ -2,6 +2,16 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['pg', '@prisma/adapter-pg', '@prisma/client', 'iyzipay'],
+    outputFileTracingIncludes: {
+      '/**': [
+        './node_modules/.prisma/**/*',
+        './node_modules/@prisma/client/**/*',
+        './node_modules/@prisma/adapter-pg/**/*',
+        './node_modules/pg/**/*',
+        './node_modules/pg-pool/**/*',
+        './node_modules/pg-protocol/**/*',
+      ],
+    },
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
