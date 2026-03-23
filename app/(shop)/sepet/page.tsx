@@ -270,7 +270,7 @@ export default function SepetPage() {
               </div>
               {shippingCost > 0 && (
                 <p className="text-xs text-primary-600">
-                  {(500 - subtotal).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL daha ekleyin, kargo ücretsiz!
+                  {(3500 - subtotal).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL daha ekleyin, kargo ücretsiz!
                 </p>
               )}
               <div className="flex justify-between font-bold text-gray-900 text-base border-t pt-3 mt-1">
